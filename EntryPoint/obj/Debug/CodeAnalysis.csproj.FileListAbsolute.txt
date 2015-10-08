@@ -1,0 +1,6 @@
+c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\EntryPoint\bin\Debug\EntryPoint.exe.config
+c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\EntryPoint\bin\Debug\EntryPoint.exe
+c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\EntryPoint\bin\Debug\EntryPoint.pdb
+c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\EntryPoint\obj\Debug\CodeAnalysis.csprojResolveAssemblyReference.cache
+c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\EntryPoint\obj\Debug\EntryPoint.exe
+c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\EntryPoint\obj\Debug\EntryPoint.pdb
