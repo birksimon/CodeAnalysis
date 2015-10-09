@@ -6,10 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using static System.Environment;
-/*
-TODO: 
- - Count AssemblyInfo.cs and AssemblyAttributes.cs to LoC?
-*/
+
 namespace CodeAnalysis
 {
     internal class SolutionAnalyzer
@@ -19,6 +16,9 @@ namespace CodeAnalysis
         private const int MultiLineTrivia = 8542;
         private const int OpenBraceToken = 8205;
         private const int CloseBraceToken = 8206;
+        private const int CoalesceExpression = 8688;
+        private const int LogicalOrExpression = 8675;
+        private const int LogicalAndExpression = 8676;
 
         public SolutionAnalyzer(string solutionPath)
         {
@@ -26,14 +26,16 @@ namespace CodeAnalysis
             _solution = msWorkspace.OpenSolutionAsync(solutionPath).Result;
         }
 
-        public MetricCollection Analyze()
+        public MetricCollection Analyze(IEnumerable<string> filesToIgnore = null)
         {
             var namespaces = new HashSet<string>();
             var metricCollection = new MetricCollection(_solution.FilePath);
-
+            var blackList = (filesToIgnore ?? new [] {""}).ToList();
+            
             foreach (var project in _solution.Projects)
             {
-                foreach (var document in project.Documents)
+                var documentsToAnalyze = FilterDocuments(project.Documents, blackList);
+                foreach (var document in documentsToAnalyze)
                 {
                     metricCollection.TotalNumberOfClasses += GetNumberOfClasses(document);
                     metricCollection.TotalNumberOfMethods += GetNumberOfMethods(document);
@@ -45,6 +47,17 @@ namespace CodeAnalysis
 
             metricCollection.TotalNumberOfNamespaces = namespaces.Count;
             return metricCollection;
+        }
+
+        private IEnumerable<Document> FilterDocuments (IEnumerable<Document> documents, IEnumerable<string> blackList)
+        {
+            var blacklistedDocuments = new HashSet<Document>();
+            var originalDocuments = documents.ToList();
+            foreach (var item in blackList)
+            {
+                blacklistedDocuments.UnionWith(from doc in originalDocuments where doc.Name.Contains(item) select doc);
+            }
+            return originalDocuments.Except(blacklistedDocuments);
         }
 
         private int GetNumberOfClasses(Document sourceDocument)
@@ -90,9 +103,11 @@ namespace CodeAnalysis
             cyclomaticComplexity += GetNodesFromDocument<SwitchSectionSyntax>(sourceDocument).Count();
             cyclomaticComplexity += GetNodesFromDocument<ContinueStatementSyntax>(sourceDocument).Count();
             cyclomaticComplexity += GetNodesFromDocument<GotoStatementSyntax>(sourceDocument).Count();
-            cyclomaticComplexity += GetNodesFromDocument<BinaryExpressionSyntax>(sourceDocument).Count();
             cyclomaticComplexity += GetNodesFromDocument<CatchClauseSyntax>(sourceDocument).Count();
             cyclomaticComplexity += GetNodesFromDocument<ConditionalExpressionSyntax>(sourceDocument).Count();
+            cyclomaticComplexity += GetNodesFromDocument<BinaryExpressionSyntax>(sourceDocument)
+                .Count(t => (t.RawKind == CoalesceExpression || t.RawKind == LogicalAndExpression || t.RawKind == LogicalOrExpression));
+
             cyclomaticComplexity += GetNumberOfMethods(sourceDocument);
             return cyclomaticComplexity;
         }

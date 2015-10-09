@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace CodeAnalysis
 {
@@ -7,13 +7,15 @@ namespace CodeAnalysis
     {
         private static void Main(string[] args)
         {
+            var directory = args[0];
             var fileCrawler = new FileCrawler();
-            IEnumerable<string> solutions = fileCrawler.GetSolutionsFromDirectory(args[0]);
+            var solutions = fileCrawler.GetSolutionsFromDirectory(directory);
+            var filesToIgnore = (fileCrawler.GetIgnoredFiles(directory)).ToList();
 
             foreach (var solution in solutions)
             {
                 var analyzer = new SolutionAnalyzer(solution);
-                var result = analyzer.Analyze();
+                var result = analyzer.Analyze(filesToIgnore);
                 PrintResult(result);
             }
         }
