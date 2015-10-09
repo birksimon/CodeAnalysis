@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.MSBuild;
 using static System.Environment;
 /*
 TODO: 
- - Is a constructor a method?
  - Count AssemblyInfo.cs and AssemblyAttributes.cs to LoC?
 */
 namespace CodeAnalysis
@@ -18,6 +17,7 @@ namespace CodeAnalysis
         private readonly Solution _solution;
         private const int EndOfLineTrivia = 8539;
         private const int MultiLineTrivia = 8542;
+        private const int OpenBraceToken = 8205;
         private const int CloseBraceToken = 8206;
 
         public SolutionAnalyzer(string solutionPath)
@@ -42,6 +42,7 @@ namespace CodeAnalysis
                     metricCollection.TotalLinesOfCode += CalculateLinesOfCode(document);
                 }
             }
+
             metricCollection.TotalNumberOfNamespaces = namespaces.Count;
             return metricCollection;
         }
@@ -58,7 +59,11 @@ namespace CodeAnalysis
 
         private int GetNumberOfMethods(Document sourceDocument)
         {
-            return GetNodesFromDocument<MethodDeclarationSyntax>(sourceDocument).Count();
+            var numberOfMethods = 0;
+            numberOfMethods += GetNodesFromDocument<MethodDeclarationSyntax>(sourceDocument).Count();
+            numberOfMethods += GetNodesFromDocument<AccessorDeclarationSyntax>(sourceDocument).Count();
+            numberOfMethods += GetNodesFromDocument<ConstructorDeclarationSyntax>(sourceDocument).Count();
+            return numberOfMethods;
         }
         
         private HashSet<string> GetNumberOfNamespaces(Document sourceDocument)
@@ -88,7 +93,7 @@ namespace CodeAnalysis
             cyclomaticComplexity += GetNodesFromDocument<BinaryExpressionSyntax>(sourceDocument).Count();
             cyclomaticComplexity += GetNodesFromDocument<CatchClauseSyntax>(sourceDocument).Count();
             cyclomaticComplexity += GetNodesFromDocument<ConditionalExpressionSyntax>(sourceDocument).Count();
-            cyclomaticComplexity += GetNodesFromDocument<MethodDeclarationSyntax>(sourceDocument).Count();
+            cyclomaticComplexity += GetNumberOfMethods(sourceDocument);
             return cyclomaticComplexity;
         }
 
@@ -98,8 +103,12 @@ namespace CodeAnalysis
             var totalLines = root.SyntaxTree.GetText().Lines.Count;
             var amountOfSingleLineCommentsAndEmptyLines = CountSingleLineCommentsAndEmptyLines(root.DescendantTokens());
             var amountOfMultiLineCommentLines = CountMultiLineCommentLines(root.DescendantTokens());
-            var linesOfCode = totalLines - amountOfSingleLineCommentsAndEmptyLines - amountOfMultiLineCommentLines;
-            return linesOfCode;
+            var amountOfSingleLineBraces = CountSingleLineBraces(root);
+            var linesOfCode = totalLines
+                - amountOfSingleLineCommentsAndEmptyLines 
+                - amountOfMultiLineCommentLines 
+                - amountOfSingleLineBraces;
+            return linesOfCode; 
         }
 
         private int CountSingleLineCommentsAndEmptyLines(IEnumerable<SyntaxToken> tokensInFile)
@@ -124,7 +133,17 @@ namespace CodeAnalysis
                 (token => (from trivia in token.GetAllTrivia() where trivia.RawKind == MultiLineTrivia select trivia))
                 .Select(multiLineComments => multiLineComments.Sum
                 (comment => comment.ToString().Split(new[] {NewLine}, StringSplitOptions.None).Count() - 1)).Sum();
-        } 
+        }
+
+        private int CountSingleLineBraces(SyntaxNode root)
+        {
+            var braces = root.DescendantTokens().Where(t => t.RawKind == OpenBraceToken 
+                                                         || t.RawKind == CloseBraceToken);
+
+            return braces.Select(brace => root.SyntaxTree.GetLineSpan(brace.Span).StartLinePosition.Line)
+                .Select(lineNumber => root.SyntaxTree.GetText().Lines[lineNumber])
+                .Count(line => line.ToString().Trim().Length == 1);
+        }
 
         private IEnumerable<CSharpSyntaxNode> GetNodesFromDocument<TNode>(Document sourceDocument)
             where TNode : CSharpSyntaxNode
