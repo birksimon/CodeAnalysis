@@ -19,17 +19,18 @@ namespace CodeAnalysis
         private const int CoalesceExpression = 8688;
         private const int LogicalOrExpression = 8675;
         private const int LogicalAndExpression = 8676;
+        private const int SingleLineDocumentationTrivia = 8544;
 
         public SolutionAnalyzer(string solutionPath)
         {
             var msWorkspace = MSBuildWorkspace.Create();
-            _solution = msWorkspace.OpenSolutionAsync(solutionPath).Result;
+            _solution = msWorkspace.OpenSolutionAsync(solutionPath).Result.GetIsolatedSolution(); //Isolated is faster
         }
 
         public MetricCollection Analyze(IEnumerable<string> filesToIgnore = null)
         {
             var namespaces = new HashSet<string>();
-            var metricCollection = new MetricCollection(_solution.FilePath);
+            var metricCollection = new MetricCollection(_solution.FilePath.Split('\\').Last());
             var blackList = (filesToIgnore ?? new [] {""}).ToList();
             
             foreach (var project in _solution.Projects)
@@ -145,7 +146,7 @@ namespace CodeAnalysis
         private int CountMultiLineCommentLines(IEnumerable<SyntaxToken> tokensInFile)
         {
             return tokensInFile.Select
-                (token => (from trivia in token.GetAllTrivia() where trivia.RawKind == MultiLineTrivia select trivia))
+                (token => (from trivia in token.GetAllTrivia() where (trivia.RawKind == MultiLineTrivia || trivia.RawKind == SingleLineDocumentationTrivia)select trivia))
                 .Select(multiLineComments => multiLineComments.Sum
                 (comment => comment.ToString().Split(new[] {NewLine}, StringSplitOptions.None).Count() - 1)).Sum();
         }
