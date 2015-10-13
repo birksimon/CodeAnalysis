@@ -10,47 +10,30 @@ namespace CodeAnalysis
         {
             var directory = args[0];
             var fileCrawler = new FileCrawler();
-            var solutions = fileCrawler.GetSolutionsFromDirectory(directory);
+            var solutionFilePaths = fileCrawler.GetSolutionsFromDirectory(directory);
             var filesToIgnore = (fileCrawler.GetIgnoredFiles(directory)).ToList();
             var csvWriter = new CSVWriter();
             var resultFile = directory + "/metrics.csv";
-
+            var workspaceHandler = new WorkspaceHandler();
             var stopwatch = new Stopwatch();
-            stopwatch.Start();
+            var analyzer = new SolutionAnalyzer();
 
-            foreach (var solution in solutions)
+            stopwatch.Start();
+            var solutions = workspaceHandler.CreateSolutionsFromFilePath(solutionFilePaths).ToList();
+            var solutionsWithoutTestFiles = workspaceHandler.RemoveTestFiles(solutions);
+            var filteredSolutions = workspaceHandler.RemoveBlackListedDocuments(solutionsWithoutTestFiles, filesToIgnore);
+            var result = analyzer.Analyze(filteredSolutions);
+            stopwatch.Stop();
+
+            foreach (var metric in result) 
             {
-                try
-                {
-                    var analyzer = new SolutionAnalyzer(solution);
-                    var result = analyzer.Analyze(filesToIgnore);
-                    if (result.TotalNumberOfNamespaces != 0)
-                    {
-                        csvWriter.WriteResultToFile(resultFile, result);
-                        PrintResult(result);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Error analysing " + solution + ":");
-                    Console.WriteLine(e.Message);
-                    Console.WriteLine(e.StackTrace);
-                }
+                csvWriter.WriteResultToFile(resultFile, metric);
+                PrintResult(metric);
             }
 
-            stopwatch.Stop();
             Console.WriteLine("Time taken: " + stopwatch.Elapsed);
         }
 
-
-        /*
-        asdasd
-        */
-
-        /// <summary>
-        /// lksdflaksdlf
-        /// </summary>
-        /// <param name="metrics"></param>
         private static void PrintResult(MetricCollection metrics)
         {
             Console.WriteLine($"Result for Solution: {metrics.Solution}");

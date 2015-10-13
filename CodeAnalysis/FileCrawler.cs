@@ -15,7 +15,14 @@ namespace CodeAnalysis
 
         public IEnumerable<string> GetIgnoredFiles(string directoryPath)
         {
-            return File.ReadAllText(directoryPath + BlackListFileName).Split(';');
+            if (File.Exists(directoryPath + BlackListFileName))
+            {
+                return File.ReadAllText(directoryPath + BlackListFileName).Split(';');
+            }
+            else
+            {
+                return new List<string>();
+            }
         }
     }
 }

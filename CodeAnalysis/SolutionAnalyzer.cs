@@ -4,14 +4,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.MSBuild;
 using static System.Environment;
 
 namespace CodeAnalysis
 {
     internal class SolutionAnalyzer
     {
-        private readonly Solution _solution;
         private const int EndOfLineTrivia = 8539;
         private const int MultiLineTrivia = 8542;
         private const int OpenBraceToken = 8205;
@@ -20,47 +18,37 @@ namespace CodeAnalysis
         private const int LogicalOrExpression = 8675;
         private const int LogicalAndExpression = 8676;
         private const int SingleLineDocumentationTrivia = 8544;
+        private const string DocumentationCommentSeparator = "///";
 
-        public SolutionAnalyzer(string solutionPath)
+        public IEnumerable<MetricCollection> Analyze(IEnumerable<Solution> solutions)
         {
-            var msWorkspace = MSBuildWorkspace.Create();
-            _solution = msWorkspace.OpenSolutionAsync(solutionPath).Result.GetIsolatedSolution(); //Isolated is faster
-        }
+            var resultMetrics = new List<MetricCollection>();
 
-        public MetricCollection Analyze(IEnumerable<string> filesToIgnore = null)
-        {
-            var namespaces = new HashSet<string>();
-            var metricCollection = new MetricCollection(_solution.FilePath.Split('\\').Last());
-            var blackList = (filesToIgnore ?? new [] {""}).ToList();
-            
-            foreach (var project in _solution.Projects)
+            foreach (var solution in solutions)
             {
-                var documentsToAnalyze = FilterDocuments(project.Documents, blackList);
-                foreach (var document in documentsToAnalyze)
+                var namespaces = new HashSet<string>();
+                var metricCollection = new MetricCollection(solution.FilePath.Split('\\').Last());
+
+                foreach (var project in solution.Projects)
                 {
-                    metricCollection.TotalNumberOfClasses += GetNumberOfClasses(document);
-                    metricCollection.TotalNumberOfMethods += GetNumberOfMethods(document);
-                    namespaces.UnionWith(GetNumberOfNamespaces(document));
-                    metricCollection.CyclomaticComplexity += CalculateCyclomaticComplexity(document);
-                    metricCollection.TotalLinesOfCode += CalculateLinesOfCode(document);
+                    foreach (var document in project.Documents)
+                    {
+                        metricCollection.TotalNumberOfClasses += GetNumberOfClasses(document);
+                        metricCollection.TotalNumberOfMethods += GetNumberOfMethods(document);
+                        namespaces.UnionWith(GetNumberOfNamespaces(document));
+                        metricCollection.CyclomaticComplexity += CalculateCyclomaticComplexity(document);
+                        metricCollection.TotalLinesOfCode += CalculateLinesOfCode(document);
+                    }
+                }
+                metricCollection.TotalNumberOfNamespaces = namespaces.Count;
+                if (metricCollection.TotalNumberOfNamespaces != 0)
+                {
+                    resultMetrics.Add(metricCollection);
                 }
             }
-
-            metricCollection.TotalNumberOfNamespaces = namespaces.Count;
-            return metricCollection;
+            return resultMetrics;
         }
-
-        private IEnumerable<Document> FilterDocuments (IEnumerable<Document> documents, IEnumerable<string> blackList)
-        {
-            var blacklistedDocuments = new HashSet<Document>();
-            var originalDocuments = documents.ToList();
-            foreach (var item in blackList)
-            {
-                blacklistedDocuments.UnionWith(from doc in originalDocuments where doc.Name.Contains(item) select doc);
-            }
-            return originalDocuments.Except(blacklistedDocuments);
-        }
-
+        
         private int GetNumberOfClasses(Document sourceDocument)
         {
             var numberOfClasses = 0;
@@ -120,10 +108,12 @@ namespace CodeAnalysis
             var amountOfSingleLineCommentsAndEmptyLines = CountSingleLineCommentsAndEmptyLines(root.DescendantTokens());
             var amountOfMultiLineCommentLines = CountMultiLineCommentLines(root.DescendantTokens());
             var amountOfSingleLineBraces = CountSingleLineBraces(root);
+            var amountOfDocumentationComments = CountDocumentationComments(root.DescendantTokens());
             var linesOfCode = totalLines
                 - amountOfSingleLineCommentsAndEmptyLines 
                 - amountOfMultiLineCommentLines 
-                - amountOfSingleLineBraces;
+                - amountOfSingleLineBraces
+                - amountOfDocumentationComments;
             return linesOfCode; 
         }
 
@@ -146,7 +136,7 @@ namespace CodeAnalysis
         private int CountMultiLineCommentLines(IEnumerable<SyntaxToken> tokensInFile)
         {
             return tokensInFile.Select
-                (token => (from trivia in token.GetAllTrivia() where (trivia.RawKind == MultiLineTrivia || trivia.RawKind == SingleLineDocumentationTrivia)select trivia))
+                (token => (from trivia in token.GetAllTrivia() where trivia.RawKind == MultiLineTrivia select trivia))
                 .Select(multiLineComments => multiLineComments.Sum
                 (comment => comment.ToString().Split(new[] {NewLine}, StringSplitOptions.None).Count() - 1)).Sum();
         }
@@ -159,6 +149,16 @@ namespace CodeAnalysis
             return braces.Select(brace => root.SyntaxTree.GetLineSpan(brace.Span).StartLinePosition.Line)
                 .Select(lineNumber => root.SyntaxTree.GetText().Lines[lineNumber])
                 .Count(line => line.ToString().Trim().Length == 1);
+        }
+
+        private int CountDocumentationComments(IEnumerable<SyntaxToken> tokensInFile)
+        {
+            return tokensInFile.Select
+                (token => (from trivia in token.GetAllTrivia()
+                           where trivia.RawKind == SingleLineDocumentationTrivia
+                           select trivia))
+                .Select(docTrivia => docTrivia.Sum
+                (trivia => trivia.ToString().Split(new[] {DocumentationCommentSeparator}, StringSplitOptions.None).Length)).Sum();
         }
 
         private IEnumerable<CSharpSyntaxNode> GetNodesFromDocument<TNode>(Document sourceDocument)
