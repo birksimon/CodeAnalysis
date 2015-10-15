@@ -99,6 +99,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Operation.cs" />
+    <Compile Include="ConsolePrinter.cs" />
     <Compile Include="CSVWriter.cs" />
     <Compile Include="MetricCollection.cs" />
     <Compile Include="EntryPoint.cs" />

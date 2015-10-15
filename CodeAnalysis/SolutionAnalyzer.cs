@@ -22,33 +22,30 @@ namespace CodeAnalysis
 
         public IEnumerable<MetricCollection> Analyze(IEnumerable<Solution> solutions)
         {
-            var resultMetrics = new List<MetricCollection>();
+            return solutions.Select(AnalyzeSolution).ToList();
+        }
 
-            foreach (var solution in solutions)
+        private MetricCollection AnalyzeSolution(Solution solution)
+        {
+            var namespaces = new HashSet<string>();
+            var metricCollection = new MetricCollection(solution.FilePath.Split('\\').Last());
+
+            foreach (var project in solution.Projects)
             {
-                var namespaces = new HashSet<string>();
-                var metricCollection = new MetricCollection(solution.FilePath.Split('\\').Last());
-
-                foreach (var project in solution.Projects)
+                foreach (var document in project.Documents)
                 {
-                    foreach (var document in project.Documents)
-                    {
-                        metricCollection.TotalNumberOfClasses += GetNumberOfClasses(document);
-                        metricCollection.TotalNumberOfMethods += GetNumberOfMethods(document);
-                        namespaces.UnionWith(GetNumberOfNamespaces(document));
-                        metricCollection.CyclomaticComplexity += CalculateCyclomaticComplexity(document);
-                        metricCollection.TotalLinesOfCode += CalculateLinesOfCode(document);
-                    }
-                }
-                metricCollection.TotalNumberOfNamespaces = namespaces.Count;
-                if (metricCollection.TotalNumberOfNamespaces != 0)
-                {
-                    resultMetrics.Add(metricCollection);
+                    ConsolePrinter.PrintStatus(Operation.Analyzing, document.ToString());
+                    metricCollection.TotalNumberOfClasses += GetNumberOfClasses(document);
+                    metricCollection.TotalNumberOfMethods += GetNumberOfMethods(document);
+                    namespaces.UnionWith(GetNumberOfNamespaces(document));
+                    metricCollection.CyclomaticComplexity += CalculateCyclomaticComplexity(document);
+                    metricCollection.TotalLinesOfCode += CalculateLinesOfCode(document);
                 }
             }
-            return resultMetrics;
+            metricCollection.TotalNumberOfNamespaces = namespaces.Count;
+            return metricCollection;
         }
-        
+
         private int GetNumberOfClasses(Document sourceDocument)
         {
             var numberOfClasses = 0;

@@ -15,6 +15,7 @@ namespace CodeAnalysis
             var solutions = new List<Solution>();
             foreach (var solution in paths)
             {
+                ConsolePrinter.PrintStatus(Operation.BuildingSolution, solution);
                 try
                 {
                     var msWorkspace = MSBuildWorkspace.Create();
@@ -22,8 +23,7 @@ namespace CodeAnalysis
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Cannot create solution for {solution}:");
-                    Console.WriteLine(e.Message);
+                    ConsolePrinter.PrintException(e, $"Cannot create solution for {solution}");
                 }
             }
             return solutions;
@@ -73,6 +73,7 @@ namespace CodeAnalysis
                 var documentsToRemove = new List<DocumentId>();
                 foreach (var project in solution.Projects)
                 {
+                    ConsolePrinter.PrintStatus(Operation.RemovingTestFiles, $"{solution.Projects}");
                     documentsToRemove.AddRange(from d in project.Documents
                         where d.Name.ToUpper().Contains(TestString)
                         select d.Id);
@@ -91,13 +92,14 @@ namespace CodeAnalysis
             IEnumerable<string> blackList)
         {
             var filteredSolutions = new List<Solution>();
+            var originalBlackList = blackList.ToList();
             foreach (var solution in solutions)
             {
                 Solution filteredSolution = null;
                 var blacklistedDocuments = new HashSet<DocumentId>();
                 foreach (var project in solution.Projects)
                 {
-                    foreach (var item in blackList)
+                    foreach (var item in originalBlackList)
                     {
                         blacklistedDocuments.UnionWith(from doc in project.Documents where doc.Name.Contains(item) select doc.Id);
                     }
