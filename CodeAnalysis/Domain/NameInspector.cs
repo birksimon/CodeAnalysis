@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using CodeAnalysis.DataClasses;
+using CodeAnalysis.Enums;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -16,7 +17,7 @@ namespace CodeAnalysis.Domain
                 from project in solution.Projects
                 from document in project.Documents
                 let numberSeries = GetNamesConsistingOfNumberSeries(document).ToList()
-                where numberSeries.Count() != 0
+                where numberSeries.Any()
                 select CreateRecommendations(document, numberSeries);
         }
 
@@ -36,25 +37,21 @@ namespace CodeAnalysis.Domain
             return nsNames;
         }
 
-        public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<VariableDeclaratorSyntax> declarations)
+        private OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<VariableDeclaratorSyntax> declarations)
         {
-            var warning = "Variable name consists of a number series.";
-            var suggestion = "Give it a meaningful name.";
-            var recommendation = new OptimizationRecomendation(warning, suggestion);
+            var occurences = GenerateAllNumberSeriesViolationOccurences(declarations, document);
+            return new OptimizationRecomendation(RecommendationType.VariableNameIsNumberSeries, occurences);
+        }
+
+        private IEnumerable<Occurence> GenerateAllNumberSeriesViolationOccurences(IEnumerable<VariableDeclaratorSyntax> declarations, Document document)
+        {
             var tree = document.GetSyntaxTreeAsync().Result;
-
-            foreach (VariableDeclaratorSyntax declaration in declarations)
+            return declarations.Select(declaration => new Occurence()
             {
-                var occurrence = new Occurence()
-                {
-                    File = document.FilePath,
-                    Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
-                    CodeFragment = declaration.ToString()
-                };
-                recommendation.Occurrences.Add(occurrence);
-            }
-
-            return recommendation;
+                File = document.FilePath,
+                Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
+                CodeFragment = declaration.ToString()
+            });
         }
     }
 }

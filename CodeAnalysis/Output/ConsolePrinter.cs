@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CodeAnalysis.DataClasses;
+using CodeAnalysis.Enums;
 
 namespace CodeAnalysis.Output
 {
@@ -43,7 +44,7 @@ namespace CodeAnalysis.Output
         {
             foreach (var recommendation in recommendations)
             {
-                PrintStuff(recommendation.WarningAndRecommendation.Key, recommendation.WarningAndRecommendation.Value);
+                Console.WriteLine(OptimizationRecomendation.RecommendationTypeToMessageMapping[recommendation.RecommendationType]);
                 foreach (var occurence in recommendation.Occurrences)
                 {
                     Console.WriteLine($"Document: {occurence.File}");

@@ -102,9 +102,11 @@
     <Compile Include="DataClasses\Occurence.cs" />
     <Compile Include="DataClasses\OptimizationRecomendation.cs" />
     <Compile Include="Domain\DocumentWalker.cs" />
+    <Compile Include="Domain\FunctionInspector.cs" />
     <Compile Include="Domain\MetricCalculator.cs" />
     <Compile Include="Domain\NameInspector.cs" />
     <Compile Include="Domain\WorkspaceHandler.cs" />
+    <Compile Include="Enums\RecommendationType.cs" />
     <Compile Include="Enums\Operation.cs" />
     <Compile Include="Output\ConsolePrinter.cs" />
     <Compile Include="Output\CSVWriter.cs" />

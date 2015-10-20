@@ -1,16 +1,23 @@
 ﻿using System.Collections.Generic;
+using CodeAnalysis.Enums;
 
 namespace CodeAnalysis.DataClasses
 {
     struct OptimizationRecomendation
     {
-        public List<Occurence> Occurrences { get; set; }
-        public KeyValuePair<string, string> WarningAndRecommendation { get; set; }
+        public static readonly Dictionary<RecommendationType, string> RecommendationTypeToMessageMapping
+            = new Dictionary<RecommendationType, string>() {
+                { RecommendationType.FunctionWithTooManyArguments, "Function has too many arguments. Suggested max. value is 3"},
+                { RecommendationType.VariableNameIsNumberSeries, "Variable name consists of a number series. Give it a meaningful name."}
+        };
 
-        public OptimizationRecomendation(string warning, string suggestion)
+        public IEnumerable<Occurence> Occurrences { get; set; }
+        public RecommendationType RecommendationType { get; set; }
+
+        public OptimizationRecomendation(RecommendationType recommendationType, IEnumerable<Occurence> occurences)
         {
-            WarningAndRecommendation = new KeyValuePair<string, string>(warning, suggestion);
-            Occurrences = new List<Occurence>();
+            RecommendationType = recommendationType;
+            Occurrences = occurences;
         }
     }
 }
