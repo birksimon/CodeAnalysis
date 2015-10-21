@@ -11,15 +11,37 @@ namespace CodeAnalysis.Domain
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         private const int MaxParameters = 3;
+        private const int MaxFunctionLOC = 20;
 
         public IEnumerable<OptimizationRecomendation> AnalyzeSolution(Solution solution)
         {
-            return 
-                from project in solution.Projects
-                from document in project.Documents
-                let functions = SearchForFunctionsWithTooManyArguments(document)
-                where functions.Any()
-                select CreateRecommendations(document, functions);
+            foreach (var project in solution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    var functionArgumentViolations = SearchForFunctionsWithTooManyArguments(document).ToList();
+                    if (functionArgumentViolations.Any())
+                    {
+                        yield return _documentWalker.CreateRecommendations
+                            (document, functionArgumentViolations, RecommendationType.FunctionWithTooManyArguments);
+                    }
+
+                    var functionSizeViolations = SearchForTooLongFunctions(document).ToList();
+                    if (functionSizeViolations.Any())
+                    {
+                        yield return _documentWalker.CreateRecommendations
+                            (document, functionSizeViolations, RecommendationType.FunctionIsTooBig);
+                    }
+                }
+            }
+
+            //return 
+            //    from project in solution.Projects
+            //    from document in project.Documents
+            //    let functions = SearchForFunctionsWithTooManyArguments(document)
+            //    where functions.Any()
+            //    select _documentWalker.CreateRecommendations(document, functions);
+
         }
 
         private IEnumerable<ParameterListSyntax> SearchForFunctionsWithTooManyArguments(Document document)
@@ -28,10 +50,12 @@ namespace CodeAnalysis.Domain
             return parameterLists.Where(list => list.Parameters.Count > MaxParameters);
         }
 
-        private OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<ParameterListSyntax> functions)
+        private IEnumerable<MethodDeclarationSyntax> SearchForTooLongFunctions(Document document)
         {
-            var occurences = _documentWalker.GenerateRuleViolationOccurences(functions, document);
-            return new OptimizationRecomendation(RecommendationType.FunctionWithTooManyArguments, occurences);
+            var metricCalculator = new MetricCalculator();
+            var methodDeclarations = _documentWalker.GetNodesFromDocument<MethodDeclarationSyntax>(document);           
+            return methodDeclarations
+                .Where(declaration => metricCalculator.CalculateLinesOfCode(declaration) > MaxFunctionLOC);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace CodeAnalysis.Domain
                     metricCollection.TotalNumberOfMethods += GetNumberOfMethods(document);
                     namespaces.UnionWith(GetNumberOfNamespaces(document));
                     metricCollection.CyclomaticComplexity += CalculateCyclomaticComplexity(document);
-                    metricCollection.TotalLinesOfCode += CalculateLinesOfCode(document);
+                    metricCollection.TotalLinesOfCode += CalculateLinesOfCode(document.GetSyntaxRootAsync().Result);
                 }
             }
             metricCollection.TotalNumberOfNamespaces = namespaces.Count;
@@ -95,14 +95,17 @@ namespace CodeAnalysis.Domain
             return cyclomaticComplexity;
         }
 
-        private int CalculateLinesOfCode(Document sourceDocument)
+        public int CalculateLinesOfCode(SyntaxNode node)
         {
-            var root = sourceDocument.GetSyntaxRootAsync().Result;
-            var totalLines = root.SyntaxTree.GetText().Lines.Count;
-            var amountOfSingleLineCommentsAndEmptyLines = CountSingleLineCommentsAndEmptyLines(root.DescendantTokens());
-            var amountOfMultiLineCommentLines = CountMultiLineCommentLines(root.DescendantTokens());
-            var amountOfSingleLineBraces = CountSingleLineBraces(root);
-            var amountOfDocumentationComments = CountDocumentationComments(root.DescendantTokens());
+            //var root = sourceDocument.GetSyntaxRootAsync().Result;
+            //var totalLines = node.SyntaxTree.GetText().Lines.Count;
+
+            var totalLines = node.SyntaxTree.GetLineSpan(node.FullSpan).EndLinePosition.Line -
+                             node.SyntaxTree.GetLineSpan(node.FullSpan).StartLinePosition.Line;
+            var amountOfSingleLineCommentsAndEmptyLines = CountSingleLineCommentsAndEmptyLines(node.DescendantTokens());
+            var amountOfMultiLineCommentLines = CountMultiLineCommentLines(node.DescendantTokens());
+            var amountOfSingleLineBraces = CountSingleLineBraces(node);
+            var amountOfDocumentationComments = CountDocumentationComments(node.DescendantTokens());
             var linesOfCode = totalLines
                 - amountOfSingleLineCommentsAndEmptyLines 
                 - amountOfMultiLineCommentLines 

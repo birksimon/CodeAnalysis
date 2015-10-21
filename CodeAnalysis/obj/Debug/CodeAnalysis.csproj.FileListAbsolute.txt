@@ -36,5 +36,4 @@ c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\b
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Reflection.Metadata.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\obj\Debug\CodeAnalysis.exe
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\obj\Debug\CodeAnalysis.pdb
-C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CodeAnalysis.exe.CodeAnalysisLog.xml
-C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CodeAnalysis.exe.lastcodeanalysissucceeded
+C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\obj\Debug\CodeAnalysis.csprojResolveAssemblyReference.cache

@@ -18,7 +18,7 @@ namespace CodeAnalysis.Domain
                 from document in project.Documents
                 let numberSeries = GetNamesConsistingOfNumberSeries(document).ToList()
                 where numberSeries.Any()
-                select CreateRecommendations(document, numberSeries);
+                select _documentWalker.CreateRecommendations(document, numberSeries, RecommendationType.VariableNameIsNumberSeries);
         }
 
         private IEnumerable<VariableDeclaratorSyntax> GetNamesConsistingOfNumberSeries(Document document)
@@ -35,12 +35,6 @@ namespace CodeAnalysis.Domain
             }
 
             return nsNames;
-        }
-
-        private OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<VariableDeclaratorSyntax> declarations)
-        {
-            var occurences = _documentWalker.GenerateRuleViolationOccurences(declarations, document);
-            return new OptimizationRecomendation(RecommendationType.VariableNameIsNumberSeries, occurences);
         }
     }
 }

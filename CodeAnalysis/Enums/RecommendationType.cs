@@ -3,6 +3,7 @@
     enum RecommendationType
     {
         FunctionWithTooManyArguments,
-        VariableNameIsNumberSeries
+        FunctionIsTooBig,
+        VariableNameIsNumberSeries,
     }
 }

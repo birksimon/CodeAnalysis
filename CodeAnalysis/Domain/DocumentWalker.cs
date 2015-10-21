@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
+using CodeAnalysis.Enums;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -13,6 +14,12 @@ namespace CodeAnalysis.Domain
         {
             var root = sourceDocument.GetSyntaxRootAsync().Result;
             return root.DescendantNodes().OfType<TNode>();
+        }
+
+        public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<CSharpSyntaxNode> functions, RecommendationType recommendation)
+        {
+            var occurences = GenerateRuleViolationOccurences(functions, document);
+            return new OptimizationRecomendation(recommendation, occurences);
         }
 
         public IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<CSharpSyntaxNode> syntaxNode, Document document)
