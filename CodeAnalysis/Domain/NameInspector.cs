@@ -39,19 +39,8 @@ namespace CodeAnalysis.Domain
 
         private OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<VariableDeclaratorSyntax> declarations)
         {
-            var occurences = GenerateAllNumberSeriesViolationOccurences(declarations, document);
+            var occurences = _documentWalker.GenerateRuleViolationOccurences(declarations, document);
             return new OptimizationRecomendation(RecommendationType.VariableNameIsNumberSeries, occurences);
-        }
-
-        private IEnumerable<Occurence> GenerateAllNumberSeriesViolationOccurences(IEnumerable<VariableDeclaratorSyntax> declarations, Document document)
-        {
-            var tree = document.GetSyntaxTreeAsync().Result;
-            return declarations.Select(declaration => new Occurence()
-            {
-                File = document.FilePath,
-                Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
-                CodeFragment = declaration.ToString()
-            });
         }
     }
 }

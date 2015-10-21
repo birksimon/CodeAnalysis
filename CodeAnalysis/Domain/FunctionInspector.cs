@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
@@ -31,19 +30,8 @@ namespace CodeAnalysis.Domain
 
         private OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<ParameterListSyntax> functions)
         {
-            var occurences = GenerateTooManyArgumentsOccurences(functions, document);
+            var occurences = _documentWalker.GenerateRuleViolationOccurences(functions, document);
             return new OptimizationRecomendation(RecommendationType.FunctionWithTooManyArguments, occurences);
-        }
-
-        private IEnumerable<Occurence> GenerateTooManyArgumentsOccurences(IEnumerable<ParameterListSyntax> functions, Document document)
-        {
-            var tree = document.GetSyntaxTreeAsync().Result;
-            return functions.Select(function => new Occurence()
-            {
-                File = document.FilePath,
-                Line = tree.GetLineSpan(function.FullSpan).ToString().Split(' ').Last(),
-                CodeFragment = function.ToString()
-            });
         }
     }
 }
