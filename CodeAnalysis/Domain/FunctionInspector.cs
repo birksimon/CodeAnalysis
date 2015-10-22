@@ -34,14 +34,6 @@ namespace CodeAnalysis.Domain
                     }
                 }
             }
-
-            //return 
-            //    from project in solution.Projects
-            //    from document in project.Documents
-            //    let functions = SearchForFunctionsWithTooManyArguments(document)
-            //    where functions.Any()
-            //    select _documentWalker.CreateRecommendations(document, functions);
-
         }
 
         private IEnumerable<ParameterListSyntax> SearchForFunctionsWithTooManyArguments(Document document)

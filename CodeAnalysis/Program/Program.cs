@@ -2,7 +2,6 @@
 using System.Linq;
 using CodeAnalysis.Domain;
 using CodeAnalysis.Output;
-using Microsoft.CodeAnalysis;
 
 namespace CodeAnalysis.Program
 {
@@ -16,6 +15,7 @@ namespace CodeAnalysis.Program
             var filesToIgnore = (fileCrawler.GetIgnoredFiles(directory)).ToList();
             var csvWriter = new CSVWriter();
             var metricResultFile = directory + "/metrics.csv";
+            var analysisResultFile = directory + "/analysis.csv";
             var workspaceHandler = new WorkspaceHandler();
             var stopwatch = new Stopwatch();
             var metricCalculator = new MetricCalculator();
@@ -34,11 +34,14 @@ namespace CodeAnalysis.Program
                 var filteredSolution = workspaceHandler.RemoveBlackListedDocuments(solutionWithoutTestFiles, filesToIgnore);
 
                 //var resultMetric = metricCalculator.AnalyzeSolution(filteredSolution);
-                var nameRecommendations = nameInspector.AnalyzeSolution(filteredSolution);
-                var functionRecommendations = functionInspector.AnalyzeSolution(filteredSolution);
+                var nameRecommendations = nameInspector.AnalyzeSolution(filteredSolution).ToList();
+                var functionRecommendations = functionInspector.AnalyzeSolution(filteredSolution).ToList();
 
-               // csvWriter.WriteResultToFile(metricResultFile, resultMetric);
-               // ConsolePrinter.PrintMetrics(resultMetric);
+               // csvWriter.WriteResultMetricsToFile(metricResultFile, resultMetric);
+               csvWriter.WriteAnalysisResultToFile(analysisResultFile, nameRecommendations);
+               csvWriter.WriteAnalysisResultToFile(analysisResultFile, functionRecommendations);
+
+                // ConsolePrinter.PrintMetrics(resultMetric);
                 ConsolePrinter.PrintRecomendations(nameRecommendations);
                 ConsolePrinter.PrintRecomendations(functionRecommendations);
             }
