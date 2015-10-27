@@ -29,6 +29,10 @@ namespace CodeAnalysis.DataClasses
                 {
                     RecommendationType.CommentHeadline,
                     "Do not use comments to describe the functionality of a codeblock. Extract block into separate function instead."
+                },
+                {
+                    RecommendationType.CodeInComment,
+                    "Do not comment out code. Delete it!."
                 }
             };
 

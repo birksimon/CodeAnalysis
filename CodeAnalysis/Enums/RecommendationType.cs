@@ -6,6 +6,7 @@
         FunctionIsTooBig,
         VariableNameIsNumberSeries,
         FlagArgument,
-        CommentHeadline
+        CommentHeadline,
+        CodeInComment
     }
 }

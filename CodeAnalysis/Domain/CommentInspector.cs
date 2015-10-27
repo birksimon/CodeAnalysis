@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
 using Microsoft.CodeAnalysis;
@@ -19,17 +20,37 @@ namespace CodeAnalysis.Domain
             {
                 foreach (var document in project.Documents)
                 {
-                    var headliningComments = SearchForHeadliningComments(document).ToList();
-                    if (headliningComments.Any())
+                 //   var headliningComments = SearchForHeadliningComments(document).ToList();
+                 //   if (headliningComments.Any())
+                 //   {
+                 //       yield return _documentWalker.CreateRecommendations(document, headliningComments,
+                 //           RecommendationType.CommentHeadline);
+                 //   }
+
+                    var codeInComments = SearchForCodeInComments(document).ToList();
+                    if (codeInComments.Any())
                     {
-                        yield return _documentWalker.CreateRecommendations(document, headliningComments,
-                            RecommendationType.CommentHeadline);
+                        yield return
+                            _documentWalker.CreateRecommendations(document, codeInComments,
+                                RecommendationType.CodeInComment);
                     }
                 }
             }
         }
 
-        //TODO Not working as intended, alomost all matches are false positives
+        private IEnumerable<SyntaxTrivia> SearchForCodeInComments(Document document)
+        {
+            var comments = GetAllComments(document);
+            return comments.Where(IsCode);
+        }
+
+        private bool IsCode(SyntaxTrivia comment)
+        {
+            Regex commentRegex = new Regex(@"^\s*//.*;\s*$");
+            bool test =  commentRegex.IsMatch(comment.ToString());
+            return test;
+        }
+
         public IEnumerable<SyntaxTrivia> SearchForHeadliningComments(Document document)
         {
             var comments = GetAllComments(document);
@@ -83,6 +104,9 @@ namespace CodeAnalysis.Domain
 
         private bool isLineInTree(SyntaxNode rootNode, int lineNumber)
         {
+            //int i = 0;
+            //   i = i + 1;
+            // sometext
             var endLine = rootNode.SyntaxTree.GetLineSpan(rootNode.FullSpan).EndLinePosition.Line;
             if (endLine < lineNumber)
             {
