@@ -8,7 +8,7 @@ namespace CodeAnalysis.Output
     internal class CSVWriter
     {
         private const string MetricHeader = @"Solution;NOC;NOM;CYCLO;NOP;LOC;NOC/NOP;NOM/NOC;LOC/NOM;CYCLO/LOC";
-        private const string AnalysisHeader = @"Recommendation;Line;File;Codefragment";
+        private const string AnalysisHeader = @"Recommendation;Codefragment;Line;File";
 
         public void WriteAnalysisResultToFile(string path, IEnumerable<OptimizationRecomendation> recommendations)
         {

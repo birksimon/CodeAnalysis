@@ -21,6 +21,7 @@ namespace CodeAnalysis.Program
             var metricCalculator = new MetricCalculator();
             var nameInspector = new NameInspector();
             var functionInspector = new FunctionInspector();
+            var commentInspector = new CommentInspector();
 
             stopwatch.Start();
 
@@ -36,15 +37,17 @@ namespace CodeAnalysis.Program
                 //var resultMetric = metricCalculator.AnalyzeSolution(filteredSolution);
                 var nameRecommendations = nameInspector.AnalyzeSolution(filteredSolution).ToList();
                 var functionRecommendations = functionInspector.AnalyzeSolution(filteredSolution).ToList();
+                var commentRecommendations = commentInspector.AnalyzeSolution(filteredSolution).ToList();
 
                // csvWriter.WriteResultMetricsToFile(metricResultFile, resultMetric);
                csvWriter.WriteAnalysisResultToFile(analysisResultFile, nameRecommendations);
                csvWriter.WriteAnalysisResultToFile(analysisResultFile, functionRecommendations);
+               csvWriter.WriteAnalysisResultToFile(analysisResultFile, commentRecommendations);
 
                 // ConsolePrinter.PrintMetrics(resultMetric);
                 ConsolePrinter.PrintRecomendations(nameRecommendations);
                 ConsolePrinter.PrintRecomendations(functionRecommendations);
-            }
+            } 
 
             stopwatch.Stop();
             ConsolePrinter.PrintStuff("Time taken: ", stopwatch.Elapsed);

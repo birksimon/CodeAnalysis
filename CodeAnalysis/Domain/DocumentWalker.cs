@@ -16,16 +16,33 @@ namespace CodeAnalysis.Domain
             return root.DescendantNodes().OfType<TNode>();
         }
 
-        public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<CSharpSyntaxNode> functions, RecommendationType recommendation)
+        public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<CSharpSyntaxNode> nodes, RecommendationType recommendation)
         {
-            var occurences = GenerateRuleViolationOccurences(functions, document);
+            var occurences = GenerateRuleViolationOccurences(nodes, document);
             return new OptimizationRecomendation(recommendation, occurences);
         }
 
-        public IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<CSharpSyntaxNode> syntaxNode, Document document)
+        public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<SyntaxTrivia> trivia, RecommendationType recommendation)
+        {
+            var occurences = GenerateRuleViolationOccurences(trivia, document);
+            return new OptimizationRecomendation(recommendation, occurences);
+        }
+
+        private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<CSharpSyntaxNode> syntaxNode, Document document)
         {
             var tree = document.GetSyntaxTreeAsync().Result;
             return syntaxNode.Select(declaration => new Occurence()
+            {
+                File = document.FilePath,
+                Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
+                CodeFragment = declaration.ToString()
+            });
+        }
+
+        private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<SyntaxTrivia> syntaxTrivia, Document document)
+        {
+            var tree = document.GetSyntaxTreeAsync().Result;
+            return syntaxTrivia.Select(declaration => new Occurence()
             {
                 File = document.FilePath,
                 Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),

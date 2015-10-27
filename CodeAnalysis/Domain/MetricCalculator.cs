@@ -98,9 +98,6 @@ namespace CodeAnalysis.Domain
 
         public int CalculateLinesOfCode(SyntaxNode node)
         {
-            //var root = sourceDocument.GetSyntaxRootAsync().Result;
-            //var totalLines = node.SyntaxTree.GetText().Lines.Count;
-
             var totalLines = node.SyntaxTree.GetLineSpan(node.FullSpan).EndLinePosition.Line -
                              node.SyntaxTree.GetLineSpan(node.FullSpan).StartLinePosition.Line;
             var amountOfSingleLineCommentsAndEmptyLines = CountSingleLineCommentsAndEmptyLines(node.DescendantTokens());

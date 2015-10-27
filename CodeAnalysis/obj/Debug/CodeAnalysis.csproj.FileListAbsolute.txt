@@ -8,9 +8,7 @@ c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\b
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\Microsoft.CodeAnalysis.Workspaces.Desktop.dll
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\Microsoft.CodeAnalysis.Workspaces.dll
-c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Collections.Immutable.dll
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.AttributedModel.dll
-c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.Convention.dll
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.Hosting.dll
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.Runtime.dll
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.TypedParts.dll
@@ -27,16 +25,14 @@ c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\b
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\Microsoft.CodeAnalysis.Workspaces.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\Microsoft.CodeAnalysis.Workspaces.Desktop.xml
-c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Collections.Immutable.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.AttributedModel.xml
-c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.Convention.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.Hosting.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.Runtime.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Composition.TypedParts.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\System.Reflection.Metadata.xml
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\obj\Debug\CodeAnalysis.exe
 c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\obj\Debug\CodeAnalysis.pdb
-C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\obj\Debug\CodeAnalysis.csprojResolveAssemblyReference.cache
 C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CsvHelper.dll
 C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CsvHelper.pdb
 C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CsvHelper.xml
+C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\obj\Debug\CodeAnalysis.csprojResolveAssemblyReference.cache

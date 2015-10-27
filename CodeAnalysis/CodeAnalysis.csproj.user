@@ -3,4 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartArguments>"C:\Users\sbirk\Documents\sample Projects\corefx-master"</StartArguments>
   </PropertyGroup>
+  <PropertyGroup>
+    <ReferencePath>E:\sbirk\wordnetdotnet-master\Library\cs\</ReferencePath>
+  </PropertyGroup>
 </Project>

@@ -12,7 +12,7 @@ namespace CodeAnalysis.DataClasses
             {
                 {
                     RecommendationType.FunctionWithTooManyArguments,
-                    "Function has too many arguments. Suggested max. value is 3"
+                    "Function has too many arguments. Suggested max. value is 3."
                 },
                 {
                     RecommendationType.VariableNameIsNumberSeries,
@@ -21,6 +21,14 @@ namespace CodeAnalysis.DataClasses
                 {
                     RecommendationType.FunctionIsTooBig,
                     "A function should not be larger than 20 LOC. Try to extract functionality."
+                },
+                {
+                    RecommendationType.FlagArgument,
+                    "Do not use Flag-Arguments as it violates the SRP. Perhapse use two functions instead."
+                },
+                {
+                    RecommendationType.CommentHeadline,
+                    "Do not use comments to describe the functionality of a codeblock. Extract block into separate function instead."
                 }
             };
 

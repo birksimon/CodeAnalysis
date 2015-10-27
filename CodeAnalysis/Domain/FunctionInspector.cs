@@ -32,6 +32,14 @@ namespace CodeAnalysis.Domain
                         yield return _documentWalker.CreateRecommendations
                             (document, functionSizeViolations, RecommendationType.FunctionIsTooBig);
                     }
+
+                    var flagArguments = SearchForFlagArguments(document).ToList();
+                    if (flagArguments.Any())
+                    {
+                        yield return
+                            _documentWalker.CreateRecommendations(document, flagArguments,
+                                RecommendationType.FlagArgument);
+                    }
                 }
             }
         }
@@ -48,6 +56,60 @@ namespace CodeAnalysis.Domain
             var methodDeclarations = _documentWalker.GetNodesFromDocument<MethodDeclarationSyntax>(document);           
             return methodDeclarations
                 .Where(declaration => metricCalculator.CalculateLinesOfCode(declaration) > MaxFunctionLOC);
+        }
+
+        private IEnumerable<ParameterSyntax> SearchForFlagArguments(Document document)
+        {
+            var parameterLists = _documentWalker.GetNodesFromDocument<ParameterListSyntax>(document);
+            var boolParameters = GetBoolParameters(parameterLists).ToList();
+            var conditionals = GetConditionalsInParametersMethods(boolParameters);
+            var identifiers = GetIdentifiersInConditionals(conditionals);
+            var flagArguments = GetParametersUsedAsIdentifiersInConditionals(boolParameters, identifiers);
+            return flagArguments.Distinct();
+        }
+
+        private IEnumerable<ParameterSyntax> GetBoolParameters(IEnumerable<ParameterListSyntax> parameterLists)
+        {
+            return 
+                from parameterList in parameterLists
+                from parameter in parameterList.Parameters
+                where parameter.Type != null
+                let parameterType = parameter.Type.ToString().ToUpper()
+                where parameterType == "BOOLEAN" || parameterType == "BOOL"
+                select parameter;
+        }
+
+        private IEnumerable<SyntaxNode> GetConditionalsInParametersMethods(
+            IEnumerable<ParameterSyntax> parameters)
+        {
+            var conditionals = new List<SyntaxNode>();
+            foreach (var methodDeclaration in parameters.Select(parameter => parameter.Parent.Parent))
+            {
+                conditionals.AddRange(methodDeclaration.DescendantNodes().OfType<IfStatementSyntax>());
+                conditionals.AddRange(methodDeclaration.DescendantNodes().OfType<ConditionalExpressionSyntax>());
+            }
+            return conditionals;
+        }
+
+        private IEnumerable<IdentifierNameSyntax> GetIdentifiersInConditionals(
+            IEnumerable<SyntaxNode> conditionals)
+        {
+            var identifiers = new List<IdentifierNameSyntax>();
+            foreach (var conditional in conditionals)
+            {
+                identifiers.AddRange(conditional.DescendantNodes().OfType<IdentifierNameSyntax>());
+            }
+            return identifiers;
+        }
+
+        private IEnumerable<ParameterSyntax> GetParametersUsedAsIdentifiersInConditionals(IEnumerable<ParameterSyntax> parameters,
+            IEnumerable<IdentifierNameSyntax> identifiers)
+        {
+            return 
+                from parameter in parameters
+                from identifier in identifiers.ToList()
+                where identifier.Identifier.Value == parameter.Identifier.Value
+                select parameter;
         }
     }
 }

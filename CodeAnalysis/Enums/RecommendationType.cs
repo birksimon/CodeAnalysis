@@ -5,5 +5,7 @@
         FunctionWithTooManyArguments,
         FunctionIsTooBig,
         VariableNameIsNumberSeries,
+        FlagArgument,
+        CommentHeadline
     }
 }
