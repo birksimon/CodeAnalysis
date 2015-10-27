@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
@@ -34,18 +33,11 @@ namespace CodeAnalysis.Domain
         public IEnumerable<SyntaxTrivia> SearchForHeadliningComments(Document document)
         {
             var comments = GetAllComments(document);
-            List<SyntaxTrivia> list = new List<SyntaxTrivia>();
-            foreach (var comment in comments)
-            {
-                IEnumerable<TextLine> followingCodeLines = GetFollowingLinesUntilBlankLine(comment.Token).ToList();
-                if (followingCodeLines.Count() >= 3 
-                    && IsLineAComment(followingCodeLines.Last().LineNumber + 1, comment.SyntaxTree))
-                {
-                    list.Add(comment);
-                }
-            }
             return 
-                list;
+                (from comment in comments
+                 let followingCodeLines = GetFollowingLinesUntilBlankLine(comment.Token).ToList()
+                 where followingCodeLines.Count() >= 3 && IsLineAComment(followingCodeLines.Last().LineNumber + 1, comment.SyntaxTree)
+                 select comment).ToList();
         }
 
         public IEnumerable<SyntaxTrivia> GetAllComments(Document document)
