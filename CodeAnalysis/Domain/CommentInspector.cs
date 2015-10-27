@@ -30,6 +30,7 @@ namespace CodeAnalysis.Domain
             }
         }
 
+        //TODO Not working as intended, alomost all matches are false positives
         public IEnumerable<SyntaxTrivia> SearchForHeadliningComments(Document document)
         {
             var comments = GetAllComments(document);
@@ -47,7 +48,6 @@ namespace CodeAnalysis.Domain
                 list;
         }
 
-        //TODO Not working as intended, alomost all matches are false positives
         public IEnumerable<SyntaxTrivia> GetAllComments(Document document)
         {
             var tree = document.GetSyntaxRootAsync().Result;
