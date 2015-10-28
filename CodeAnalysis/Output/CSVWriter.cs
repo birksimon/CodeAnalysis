@@ -11,15 +11,15 @@ namespace CodeAnalysis.Output
 
         public void WriteAnalysisResultToFile(string path, IEnumerable<OptimizationRecomendation> recommendations)
         {
-            InitializeFile(path);
+            InitializeFile(path, AnalysisHeader);
             WriteRecommendations(path, recommendations);
         }
 
-        private void InitializeFile(string path)
+        private void InitializeFile(string path, string header)
         {
             if (File.Exists(path)) return;
             CreateFile(path);
-            WriteLineToFile(path, AnalysisHeader);
+            WriteLineToFile(path, header);
         }
 
         private void WriteRecommendations(string path, IEnumerable<OptimizationRecomendation> recommendations)
@@ -33,15 +33,10 @@ namespace CodeAnalysis.Output
 
         public void WriteResultMetricsToFile(string path, MetricCollection metrics)
         {
-            if (metrics.TotalNumberOfNamespaces == 0 || metrics.TotalNumberOfClasses == 0
-                || metrics.TotalLinesOfCode == 0)
+            if (metrics.IsEmpty())
                 return;
 
-            if (!File.Exists(path))
-            {
-                CreateFile(path);
-                WriteLineToFile(path, MetricHeader);
-            }
+            InitializeFile(path, MetricHeader);
             WriteLineToFile(path, metrics.ToCSVString());
         }
 

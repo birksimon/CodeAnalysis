@@ -37,5 +37,11 @@ namespace CodeAnalysis.DataClasses
             builder.Append(Double.Parse(CyclomaticComplexity.ToString()) / TotalLinesOfCode);
             return builder.ToString();
         }
+
+        public bool IsEmpty()
+        {
+            return (TotalNumberOfNamespaces == 0 || TotalNumberOfClasses == 0
+                || TotalLinesOfCode == 0);
+        }
     }
 }
