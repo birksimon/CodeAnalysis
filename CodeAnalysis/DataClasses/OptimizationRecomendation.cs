@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CodeAnalysis.Enums;
 
@@ -66,6 +67,11 @@ namespace CodeAnalysis.DataClasses
                 builder.Append(occurence.File).Append(Environment.NewLine);
             }
             return builder.ToString();
+        }
+
+        public bool HasOccurences()
+        {
+            return Occurrences.Any();
         }
     }
 }

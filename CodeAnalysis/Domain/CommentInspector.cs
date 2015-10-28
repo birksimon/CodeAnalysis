@@ -16,28 +16,27 @@ namespace CodeAnalysis.Domain
 
         public IEnumerable<OptimizationRecomendation> AnalyzeSolution(Solution solution)
         {
-            foreach (var project in solution.Projects)
+            var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
+            foreach (var document in documents)
             {
-                foreach (var document in project.Documents)
+                var codeInComments = SearchForCodeInComments(document).ToList();
+                if (codeInComments.Any())
                 {
-                 //   var headliningComments = SearchForHeadliningComments(document).ToList();
-                 //   if (headliningComments.Any())
-                 //   {
-                 //       yield return _documentWalker.CreateRecommendations(document, headliningComments,
-                 //           RecommendationType.CommentHeadline);
-                 //   }
-
-                    var codeInComments = SearchForCodeInComments(document).ToList();
-                    if (codeInComments.Any())
-                    {
-                        yield return
-                            _documentWalker.CreateRecommendations(document, codeInComments,
-                                RecommendationType.CodeInComment);
-                    }
+                    yield return _documentWalker.CreateRecommendations(document, codeInComments,
+                        RecommendationType.CodeInComment);
                 }
+
+                //var documentationOnPrivateCode = SearchForDocumentationOnPrivateCode(document);
             }
         }
 
+        /// <summary>
+        /// this is a function that does stuff
+        /// </summary>
+        /// <param name="document">is some kind of document</param>
+        /// <param name="nothing else">document was the only parameter</param>
+        /// <returns>nothing
+        /// and more of nothing</returns>
         private IEnumerable<SyntaxTrivia> SearchForCodeInComments(Document document)
         {
             var comments = GetAllComments(document);
@@ -47,8 +46,7 @@ namespace CodeAnalysis.Domain
         private bool IsCode(SyntaxTrivia comment)
         {
             Regex commentRegex = new Regex(@"^\s*//.*;\s*$");
-            bool test =  commentRegex.IsMatch(comment.ToString());
-            return test;
+            return commentRegex.IsMatch(comment.ToString());
         }
 
         public IEnumerable<SyntaxTrivia> SearchForHeadliningComments(Document document)
@@ -104,15 +102,8 @@ namespace CodeAnalysis.Domain
 
         private bool isLineInTree(SyntaxNode rootNode, int lineNumber)
         {
-            //int i = 0;
-            //   i = i + 1;
-            // sometext
             var endLine = rootNode.SyntaxTree.GetLineSpan(rootNode.FullSpan).EndLinePosition.Line;
-            if (endLine < lineNumber)
-            {
-                return false;
-            }
-            return true;
+            return !(endLine < lineNumber);
         }
     }
 }

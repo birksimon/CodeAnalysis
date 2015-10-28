@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using CodeAnalysis.DataClasses;
 
@@ -12,16 +11,23 @@ namespace CodeAnalysis.Output
 
         public void WriteAnalysisResultToFile(string path, IEnumerable<OptimizationRecomendation> recommendations)
         {
+            InitializeFile(path);
+            WriteRecommendations(path, recommendations);
+        }
 
+        private void InitializeFile(string path)
+        {
+            if (File.Exists(path)) return;
+            CreateFile(path);
+            WriteLineToFile(path, AnalysisHeader);
+        }
 
-            if (!File.Exists(path))
-            {
-                CreateFile(path);
-                WriteLineToFile(path, AnalysisHeader);
-            }
+        private void WriteRecommendations(string path, IEnumerable<OptimizationRecomendation> recommendations)
+        {
             foreach (var recommendation in recommendations)
             {
-                WriteLineToFile(path, recommendation.ToCSVString());
+                if (recommendation.HasOccurences())
+                    WriteLineToFile(path, recommendation.ToCSVString());
             }
         }
 
@@ -46,7 +52,7 @@ namespace CodeAnalysis.Output
 
         private void WriteLineToFile(string path, string line)
         {
-            File.AppendAllText(path, line + Environment.NewLine);
+            File.AppendAllText(path, line);
         }
     }
 }

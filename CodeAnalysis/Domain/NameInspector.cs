@@ -13,9 +13,9 @@ namespace CodeAnalysis.Domain
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         public IEnumerable<OptimizationRecomendation> AnalyzeSolution(Solution solution)
         {
+            var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
             return 
-                from project in solution.Projects
-                from document in project.Documents
+                from document in documents
                 let numberSeries = GetNamesConsistingOfNumberSeries(document).ToList()
                 where numberSeries.Any()
                 select _documentWalker.CreateRecommendations(document, numberSeries, RecommendationType.VariableNameIsNumberSeries);

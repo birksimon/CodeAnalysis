@@ -15,33 +15,33 @@ namespace CodeAnalysis.Domain
 
         public IEnumerable<OptimizationRecomendation> AnalyzeSolution(Solution solution)
         {
-            foreach (var project in solution.Projects)
+            var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
+            foreach (var document in documents)
             {
-                foreach (var document in project.Documents)
-                {
-                    var functionArgumentViolations = SearchForFunctionsWithTooManyArguments(document).ToList();
-                    if (functionArgumentViolations.Any())
-                    {
-                        yield return _documentWalker.CreateRecommendations
-                            (document, functionArgumentViolations, RecommendationType.FunctionWithTooManyArguments);
-                    }
-
-                    var functionSizeViolations = SearchForTooLongFunctions(document).ToList();
-                    if (functionSizeViolations.Any())
-                    {
-                        yield return _documentWalker.CreateRecommendations
-                            (document, functionSizeViolations, RecommendationType.FunctionIsTooBig);
-                    }
-
-                    var flagArguments = SearchForFlagArguments(document).ToList();
-                    if (flagArguments.Any())
-                    {
-                        yield return
-                            _documentWalker.CreateRecommendations(document, flagArguments,
-                                RecommendationType.FlagArgument);
-                    }
-                }
+                yield return GetRecommendationsForFunctionsWithTooManyArguments(document);
+                yield return GetRecommendationsForTooLongFunctions(document);
+                yield return GetRecommendationsForFlagArguments(document);
             }
+        }
+
+        private OptimizationRecomendation GetRecommendationsForFunctionsWithTooManyArguments(Document document)
+        {
+            var functionArgumentViolations = SearchForFunctionsWithTooManyArguments(document).ToList();
+            return _documentWalker.CreateRecommendations 
+                (document, functionArgumentViolations, RecommendationType.FunctionWithTooManyArguments);
+        }
+
+        private OptimizationRecomendation GetRecommendationsForTooLongFunctions(Document document)
+        {
+            var functionSizeViolations = SearchForTooLongFunctions(document).ToList();
+            return _documentWalker.CreateRecommendations
+                (document, functionSizeViolations, RecommendationType.FunctionIsTooBig);
+        }
+
+        private OptimizationRecomendation GetRecommendationsForFlagArguments(Document document)
+        {
+            var flagArguments = SearchForFlagArguments(document).ToList();
+            return _documentWalker.CreateRecommendations(document, flagArguments, RecommendationType.FlagArgument);
         }
 
         private IEnumerable<ParameterListSyntax> SearchForFunctionsWithTooManyArguments(Document document)

@@ -49,5 +49,10 @@ namespace CodeAnalysis.Domain
                 CodeFragment = declaration.ToString()
             });
         }
+
+        public IEnumerable<Document> GetAllDocumentsFromSolution(Solution solution)
+        {
+            return solution.Projects.SelectMany(project => project.Documents);
+        }
     }
 }
