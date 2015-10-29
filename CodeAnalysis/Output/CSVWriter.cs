@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using CodeAnalysis.DataClasses;
+using CodeAnalysis.Domain;
 
 namespace CodeAnalysis.Output
 {

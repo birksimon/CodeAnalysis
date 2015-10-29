@@ -15,7 +15,7 @@ namespace CodeAnalysis.Domain
     /// <param name="nothing else">document was the only parameter</param>
     /// <returns>nothing
     /// and more of nothing</returns>
-    internal class CommentInspector
+    internal class CommentInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         private const int SingleLineCommentTrivia = 8541;
@@ -23,7 +23,7 @@ namespace CodeAnalysis.Domain
         private const int SufficientBlockSize = 10;
         private const int PrivateToken = 8344;
 
-        public IEnumerable<OptimizationRecomendation> AnalyzeSolution(Solution solution)
+        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
             foreach (var document in documents)

@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeAnalysis.Domain
 {
-    class NameInspector
+    class NameInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
-        public IEnumerable<OptimizationRecomendation> AnalyzeSolution(Solution solution)
+        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
             return 

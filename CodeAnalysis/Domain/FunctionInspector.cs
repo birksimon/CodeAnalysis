@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeAnalysis.Domain
 {
-    class FunctionInspector
+    class FunctionInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         private const int MaxParameters = 3;
         private const int MaxFunctionLOC = 20;
 
-        public IEnumerable<OptimizationRecomendation> AnalyzeSolution(Solution solution)
+        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
             foreach (var document in documents)

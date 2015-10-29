@@ -91,9 +91,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="WordNetClasses">
-      <HintPath>..\packages\WordNet.net\WordNetClasses.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataClasses\Occurence.cs" />

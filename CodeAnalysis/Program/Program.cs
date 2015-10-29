@@ -35,9 +35,9 @@ namespace CodeAnalysis.Program
                 var filteredSolution = workspaceHandler.RemoveBlackListedDocuments(solutionWithoutTestFiles, filesToIgnore);
 
                 //var resultMetric = metricCalculator.AnalyzeSolution(filteredSolution);
-                var nameRecommendations = nameInspector.AnalyzeSolution(filteredSolution).ToList();
-                var functionRecommendations = functionInspector.AnalyzeSolution(filteredSolution).ToList();
-                var commentRecommendations = commentInspector.AnalyzeSolution(filteredSolution).ToList();
+                var nameRecommendations = nameInspector.Analyze(filteredSolution).ToList();
+                var functionRecommendations = functionInspector.Analyze(filteredSolution).ToList();
+                var commentRecommendations = commentInspector.Analyze(filteredSolution).ToList();
 
                // csvWriter.WriteResultMetricsToFile(metricResultFile, resultMetric);
                csvWriter.WriteAnalysisResultToFile(analysisResultFile, nameRecommendations);
