@@ -11,30 +11,13 @@ namespace CodeAnalysis.DataClasses
         public static readonly Dictionary<RecommendationType, string> RecommendationTypeToMessageMapping
             = new Dictionary<RecommendationType, string>()
             {
-                {
-                    RecommendationType.FunctionWithTooManyArguments,
-                    "Function has too many arguments. Suggested max. value is 3."
-                },
-                {
-                    RecommendationType.VariableNameIsNumberSeries,
-                    "Variable name consists of a number series. Give it a meaningful name."
-                },
-                {
-                    RecommendationType.FunctionIsTooBig,
-                    "A function should not be larger than 20 LOC. Try to extract functionality."
-                },
-                {
-                    RecommendationType.FlagArgument,
-                    "Do not use Flag-Arguments as it violates the SRP. Perhapse use two functions instead."
-                },
-                {
-                    RecommendationType.CommentHeadline,
-                    "Do not use comments to describe the functionality of a codeblock. Extract block into separate function instead."
-                },
-                {
-                    RecommendationType.CodeInComment,
-                    "Do not comment out code. Delete it!."
-                }
+                { RecommendationType.FunctionWithTooManyArguments, "Function has too many arguments. Suggested max. value is 3." },
+                { RecommendationType.VariableNameIsNumberSeries, "Variable name consists of a number series. Give it a meaningful name." },
+                { RecommendationType.FunctionIsTooBig, "A function should not be larger than 20 LOC. Try to extract functionality." },
+                { RecommendationType.FlagArgument, "Do not use Flag-Arguments as it violates the SRP. Perhapse use two functions instead." },
+                { RecommendationType.CommentHeadline, "Do not use comments to describe the functionality of a codeblock. Extract block into separate function instead." },
+                { RecommendationType.CodeInComment, "Do not comment out code. Delete it!." },
+                { RecommendationType.DocumentationOnPrivateSoftwareUnits, "Only use documentation on public API elements." }
             };
 
         private const char Semicolon = ';';

@@ -7,6 +7,7 @@
         VariableNameIsNumberSeries,
         FlagArgument,
         CommentHeadline,
-        CodeInComment
+        CodeInComment,
+        DocumentationOnPrivateSoftwareUnits
     }
 }

@@ -8,35 +8,55 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CodeAnalysis.Domain
 {
+    /// <summary>
+    /// this is a function that does stuff
+    /// </summary>
+    /// <param name="document">is some kind of document</param>
+    /// <param name="nothing else">document was the only parameter</param>
+    /// <returns>nothing
+    /// and more of nothing</returns>
     internal class CommentInspector
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         private const int SingleLineCommentTrivia = 8541;
+        private const int DocumentationCommentTriva = 8544;
         private const int SufficientBlockSize = 10;
+        private const int PrivateToken = 8344;
 
         public IEnumerable<OptimizationRecomendation> AnalyzeSolution(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
             foreach (var document in documents)
             {
-                var codeInComments = SearchForCodeInComments(document).ToList();
-                if (codeInComments.Any())
-                {
-                    yield return _documentWalker.CreateRecommendations(document, codeInComments,
-                        RecommendationType.CodeInComment);
-                }
-
-                //var documentationOnPrivateCode = SearchForDocumentationOnPrivateCode(document);
+                yield return GetRecommendationsForCodeInComments(document);
+                yield return GetRecommendationsForDocumentationOnPrivateSoftwareUnits(document);
             }
         }
+        
+        private OptimizationRecomendation GetRecommendationsForDocumentationOnPrivateSoftwareUnits(Document document)
+        {
+            var documentationOnPrivateCode = SearchForDocumentationOnPrivateCode(document).ToList();
+            return _documentWalker.CreateRecommendations(document, documentationOnPrivateCode, RecommendationType.DocumentationOnPrivateSoftwareUnits);
+        }
 
-        /// <summary>
-        /// this is a function that does stuff
-        /// </summary>
-        /// <param name="document">is some kind of document</param>
-        /// <param name="nothing else">document was the only parameter</param>
-        /// <returns>nothing
-        /// and more of nothing</returns>
+        private IEnumerable<SyntaxTrivia> SearchForDocumentationOnPrivateCode(Document document)
+        {
+            var root = document.GetSyntaxRootAsync().Result;
+            var allPrivateAccessModifiers = root.DescendantTokens().Where(token => token.RawKind == PrivateToken);
+            var modifiersWithDocumentation = allPrivateAccessModifiers.Where(token => token.HasLeadingTrivia);
+            var privateDocumentation = from tokens in modifiersWithDocumentation 
+                                       from trivia in tokens.LeadingTrivia
+                                       where trivia.RawKind == DocumentationCommentTriva
+                                       select trivia;
+            return privateDocumentation;
+        }
+
+        private OptimizationRecomendation GetRecommendationsForCodeInComments(Document document)
+        {
+            var codeInComments = SearchForCodeInComments(document).ToList();
+            return _documentWalker.CreateRecommendations(document, codeInComments, RecommendationType.CodeInComment);
+        }
+
         private IEnumerable<SyntaxTrivia> SearchForCodeInComments(Document document)
         {
             var comments = GetAllComments(document);
