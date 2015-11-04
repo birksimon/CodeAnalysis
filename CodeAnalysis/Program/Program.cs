@@ -22,6 +22,7 @@ namespace CodeAnalysis.Program
             var nameInspector = new NameInspector();
             var functionInspector = new FunctionInspector();
             var commentInspector = new CommentInspector();
+            var lawOfDemeterValidator = new LawOfDemeterValidator();
 
             stopwatch.Start();
 
@@ -38,6 +39,7 @@ namespace CodeAnalysis.Program
                 var nameRecommendations = nameInspector.Analyze(filteredSolution).ToList();
                 var functionRecommendations = functionInspector.Analyze(filteredSolution).ToList();
                 var commentRecommendations = commentInspector.Analyze(filteredSolution).ToList();
+                var demeterViolations = lawOfDemeterValidator.Analyze(filteredSolution).ToList();
 
                // csvWriter.WriteResultMetricsToFile(metricResultFile, resultMetric);
                csvWriter.WriteAnalysisResultToFile(analysisResultFile, nameRecommendations);
@@ -45,8 +47,8 @@ namespace CodeAnalysis.Program
                csvWriter.WriteAnalysisResultToFile(analysisResultFile, commentRecommendations);
 
                 // ConsolePrinter.PrintMetrics(resultMetric);
-                ConsolePrinter.PrintRecomendations(nameRecommendations);
-                ConsolePrinter.PrintRecomendations(functionRecommendations);
+                // ConsolePrinter.PrintRecomendations(nameRecommendations);
+                // ConsolePrinter.PrintRecomendations(functionRecommendations);
             } 
 
             stopwatch.Stop();

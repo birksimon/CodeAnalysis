@@ -16,6 +16,22 @@ namespace CodeAnalysis.Domain
             return root.DescendantNodes().OfType<TNode>();
         }
 
+        public IEnumerable<Document> GetAllDocumentsFromSolution(Solution solution)
+        {
+            return solution.Projects.SelectMany(project => project.Documents);
+        }
+
+        public TNode GetContainingNodeOfType<TNode>(SyntaxNode node) where TNode : CSharpSyntaxNode
+        {
+            var parent = node.Parent;
+            while (true)
+            {
+                if (parent is TNode)
+                    return (TNode) parent;
+                parent = parent.Parent;
+            }
+        }
+
         public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<CSharpSyntaxNode> nodes, RecommendationType recommendation)
         {
             var occurences = GenerateRuleViolationOccurences(nodes, document);
@@ -48,11 +64,6 @@ namespace CodeAnalysis.Domain
                 Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
                 CodeFragment = declaration.ToString()
             });
-        }
-
-        public IEnumerable<Document> GetAllDocumentsFromSolution(Solution solution)
-        {
-            return solution.Projects.SelectMany(project => project.Documents);
         }
     }
 }

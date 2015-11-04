@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CodeAnalysis.Enums;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeAnalysis.DataClasses
 {
@@ -29,7 +30,7 @@ namespace CodeAnalysis.DataClasses
             RecommendationType = recommendationType;
             Occurrences = occurences;
         }
-
+        
         public string ToCSVString()
         {
             StringBuilder builder = new StringBuilder();
