@@ -11,6 +11,7 @@ namespace CodeAnalysis.Domain
     class NameInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
+
         public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);

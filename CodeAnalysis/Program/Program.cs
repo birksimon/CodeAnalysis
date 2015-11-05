@@ -45,6 +45,7 @@ namespace CodeAnalysis.Program
                csvWriter.WriteAnalysisResultToFile(analysisResultFile, nameRecommendations);
                csvWriter.WriteAnalysisResultToFile(analysisResultFile, functionRecommendations);
                csvWriter.WriteAnalysisResultToFile(analysisResultFile, commentRecommendations);
+               csvWriter.WriteAnalysisResultToFile(analysisResultFile, demeterViolations);
 
                 // ConsolePrinter.PrintMetrics(resultMetric);
                 // ConsolePrinter.PrintRecomendations(nameRecommendations);

@@ -8,6 +8,7 @@
         FlagArgument,
         CommentHeadline,
         CodeInComment,
-        DocumentationOnPrivateSoftwareUnits
+        DocumentationOnPrivateSoftwareUnits,
+        LODViolation
     }
 }

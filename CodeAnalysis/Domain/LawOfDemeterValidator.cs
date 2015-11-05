@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
+using CodeAnalysis.Enums;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeAnalysis.Domain
@@ -18,83 +18,98 @@ namespace CodeAnalysis.Domain
             return documents.Select(GetLODViolations);
         }
 
+        // TODO SymbolInfo von IEnumerable Typen werden nicht gefunden. Wieso? -> Eventuell Token des GenericNames
+        // TODO Erweiterungsmethoden werden nicht erkannt -> Erster Parameter in Liste ist this
+        // TODO Was ist mit List[0].Foo() -> theoretisch Verstoß, aber wohl nicht sinnvoll
+        // TODO Was ist mit ...ToString().Split('').... -> Grunddatentypen; Listen, LINQ OK
         private OptimizationRecomendation GetLODViolations(Document document)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
             var methodInvocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(document);
-            foreach (var methodInvocation in methodInvocations)
-            {
-                var tempvar1 = IsInvocationOfContainingType(methodInvocation, semanticModel);
-                var tempvar2 = IsInvocationOfContainingMethodsParameters(methodInvocation, semanticModel);
-                var tempvar3 = IsInvocationOfContainingTypesMembers(methodInvocation, semanticModel);
-            }
-
-            return new OptimizationRecomendation();
+            var lodViolations =
+                (from methodInvocation in methodInvocations
+                    where !IsInvocationOfContainingType(methodInvocation, semanticModel)
+                    where !IsInvocationOfContainingMethodsParameters(methodInvocation, semanticModel)
+                    where !IsInvocationOfContainingTypesMembers(methodInvocation, semanticModel)
+                    where !IsInvocationOfInMethodCreatedObject(methodInvocation, semanticModel)
+                    where !IsStaticInvocation(methodInvocation, semanticModel)
+                 select methodInvocation).ToList();
+            return _documentWalker.CreateRecommendations(document, lodViolations, RecommendationType.LODViolation);
         }
 
         private bool IsInvocationOfContainingType(InvocationExpressionSyntax invocation, SemanticModel model)
         {
-            var invocationSymbol = ModelExtensions.GetSymbolInfo(model, invocation).Symbol;
+            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
             var containingType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(invocation);
             var methodDeclarations = containingType.DescendantNodes().OfType<MethodDeclarationSyntax>();
             return methodDeclarations
-                .Select(declaration => ModelExtensions.GetDeclaredSymbol(model, declaration))
+                .Select(declaration => model.GetDeclaredSymbol(declaration))
                 .Any(declarationSymbol => invocationSymbol.Equals(declarationSymbol));
         }
 
-
-        // TODO Zugriff auf MembersVariables?
-        // TODO Bei Listen fehlen Methoden der Enumerable Klasse. Wie?!
         private bool IsInvocationOfContainingMethodsParameters(InvocationExpressionSyntax invocation,
             SemanticModel model)
         {
-            var invocationSymbol = ModelExtensions.GetSymbolInfo(model, invocation).Symbol;
+            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
             var containingMethod = _documentWalker.GetContainingNodeOfType<MethodDeclarationSyntax>(invocation);
             var parameters = containingMethod.ParameterList.Parameters;
-
-            return (from parameterTypes in parameters.Select(x => x.DescendantNodes()
-                .Where(t => t is IdentifierNameSyntax || t is PredefinedTypeSyntax || t is GenericNameSyntax || t is ArrayTypeSyntax))
-                from type in parameterTypes
-                select FindSymbolInfo(model, type)
-                into symbolInfo
-                where symbolInfo != null
-                select CollectAllMembers(symbolInfo)).Any(members => members.Contains(invocationSymbol));
+            return IsSymbolInvocationOfNodes(parameters, invocationSymbol, model);
         }
 
         private bool IsInvocationOfContainingTypesMembers(InvocationExpressionSyntax invocation, SemanticModel model)
         {
-            var invocationSymbol = ModelExtensions.GetSymbolInfo(model, invocation).Symbol;
+            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
             var containingType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(invocation);
-            var members = containingType.Members.OfType<FieldDeclarationSyntax>();
 
-            return (from parameterTypes in members.Select(x => x.DescendantNodes()
-               .Where(t => t is IdentifierNameSyntax || t is PredefinedTypeSyntax || t is GenericNameSyntax || t is ArrayTypeSyntax))
-                    from type in parameterTypes
-                    select FindSymbolInfo(model, type)
-               into symbolInfo
-                    where symbolInfo != null
-                    select CollectAllMembers(symbolInfo)).Any(member => member.Contains(invocationSymbol));
+            var members = containingType.Members; 
+            //members.AddRange(containingType.Members.OfType<BaseFieldDeclarationSyntax>());
+            //members.AddRange(containingType.Members.OfType<BasePropertyDeclarationSyntax>());
+
+            var br = false;
+            if (containingType.ToString().Contains("NameInspector") &&
+                !containingType.ToString().Contains("LawOfDemeterValidator")
+                && invocation.ToString().Contains("_documentWalker.GetNodesFromDocument"))
+            {
+                br = true;
+            }
+
+            //            var fields = containingType.Members.OfType<FieldDeclarationSyntax>();
+            //            var properties = containingType.Members.OfType<PropertyDeclarationSyntax>();
+            return IsSymbolInvocationOfNodes(members, invocationSymbol, model);
+        }
+
+        private bool IsInvocationOfInMethodCreatedObject(InvocationExpressionSyntax invocation, SemanticModel model)
+        {
+            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
+            var containingMethod = _documentWalker.GetContainingNodeOfType<MethodDeclarationSyntax>(invocation);
+            var objectCreations = containingMethod.DescendantNodes().OfType<LocalDeclarationStatementSyntax>();
+            return IsSymbolInvocationOfNodes(objectCreations, invocationSymbol, model);
+        }
+
+        private bool IsStaticInvocation(InvocationExpressionSyntax invocation, SemanticModel model)
+        {
+            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
+            return invocationSymbol.IsStatic;
+        }
+
+
+        private bool IsSymbolInvocationOfNodes(IEnumerable<SyntaxNode> nodes, ISymbol invocationSymbol, SemanticModel model )
+        {
+            return (from objectTypes in nodes.Select(x => x.DescendantNodes().Where
+                (t => t is IdentifierNameSyntax || t is PredefinedTypeSyntax || t is GenericNameSyntax || t is ArrayTypeSyntax))
+                from type in objectTypes
+                select FindSymbolInfo(model, type)
+                into symbolInfo
+                where symbolInfo != null
+                select CollectAllMembers(symbolInfo)).Any(member => member.Contains(invocationSymbol));
         }
 
         private ITypeSymbol FindSymbolInfo(SemanticModel model, SyntaxNode parameter)
         {
-            try
-            {
-                var symbolInfo = (INamedTypeSymbol) model.GetSymbolInfo(parameter).Symbol;
-                return symbolInfo;
-            }
-            catch (InvalidCastException)
-            {
-                try
-                {
-                    var symbolInfo = (IArrayTypeSymbol) model.GetSymbolInfo(parameter).Symbol;
-                    return symbolInfo;
-                }
-                catch (InvalidCastException)
-                {
-                    return null;
-                }
-            }
+            //var symbol = model.GetSymbolInfo(parameter).Symbol;
+            //if(symbol is INamedTypeSymbol|| symbol is IArrayTypeSymbol) return (ITypeSymbol)symbol;
+
+            return model.GetSymbolInfo(parameter).Symbol as ITypeSymbol;
         }
 
         private List<ISymbol> CollectAllMembers(ITypeSymbol symbolInfo)
@@ -107,25 +122,6 @@ namespace CodeAnalysis.Domain
                 parent = parent.BaseType;
             }
             return members;
-        }
-
-        private void TestFunccc()
-        {
-            _documentWalker.ToString();
-
-            var tree = CSharpSyntaxTree.ParseText(@"
-    public class MyClass
-    {
-        public void MyMethod()
-        {
-        }
-    }");
-
-            var syntaxRoot = tree.GetRoot();
-            var MyClass = syntaxRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            var MyMethod = syntaxRoot.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
-
-
         }
     }
 }
