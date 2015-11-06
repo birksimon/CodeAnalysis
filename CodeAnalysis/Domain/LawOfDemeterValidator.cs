@@ -26,17 +26,27 @@ namespace CodeAnalysis.Domain
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
             var methodInvocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(document);
-            var lodViolations =
-                (from methodInvocation in methodInvocations
-                    where !IsInvocationOfContainingType(methodInvocation, semanticModel)
-                    where !IsInvocationOfContainingMethodsParameters(methodInvocation, semanticModel)
-                    where !IsInvocationOfContainingTypesMembers(methodInvocation, semanticModel)
-                    where !IsInvocationOfInMethodCreatedObject(methodInvocation, semanticModel)
-                    where !IsStaticInvocation(methodInvocation, semanticModel)
-                 select methodInvocation).ToList();
+
+            var lodViolations = new List<InvocationExpressionSyntax>();
+            foreach (var methodInvocation in methodInvocations)
+            {
+                if (IsInvocationOfContainingType(methodInvocation, semanticModel))
+                    continue;
+                if (IsInvocationOfContainingMethodsParameters(methodInvocation, semanticModel))
+                    continue;
+                if (IsInvocationOfContainingTypesMembers(methodInvocation, semanticModel))
+                    continue;
+                if (IsInvocationOfInMethodCreatedObject(methodInvocation, semanticModel))
+                    continue;
+                if (IsStaticInvocation(methodInvocation, semanticModel))
+                    continue;
+                if (IsExtensionMethodInvocation(methodInvocation, semanticModel))
+                    continue;
+                lodViolations.Add(methodInvocation);
+            }
             return _documentWalker.CreateRecommendations(document, lodViolations, RecommendationType.LODViolation);
         }
-
+        
         private bool IsInvocationOfContainingType(InvocationExpressionSyntax invocation, SemanticModel model)
         {
             var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
@@ -60,21 +70,20 @@ namespace CodeAnalysis.Domain
         {
             var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
             var containingType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(invocation);
+            var members = containingType.Members;
 
-            var members = containingType.Members; 
-            //members.AddRange(containingType.Members.OfType<BaseFieldDeclarationSyntax>());
-            //members.AddRange(containingType.Members.OfType<BasePropertyDeclarationSyntax>());
 
             var br = false;
-            if (containingType.ToString().Contains("NameInspector") &&
+            if (containingType.ToString().Contains("FunctionInspector") &&
                 !containingType.ToString().Contains("LawOfDemeterValidator")
                 && invocation.ToString().Contains("_documentWalker.GetNodesFromDocument"))
             {
                 br = true;
             }
 
-            //            var fields = containingType.Members.OfType<FieldDeclarationSyntax>();
-            //            var properties = containingType.Members.OfType<PropertyDeclarationSyntax>();
+
+
+
             return IsSymbolInvocationOfNodes(members, invocationSymbol, model);
         }
 
@@ -92,23 +101,44 @@ namespace CodeAnalysis.Domain
             return invocationSymbol.IsStatic;
         }
 
+        private bool IsExtensionMethodInvocation(InvocationExpressionSyntax invocation, SemanticModel model)
+        {
+            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
+            return invocationSymbol != null && invocationSymbol.IsExtensionMethod;
+        }
 
         private bool IsSymbolInvocationOfNodes(IEnumerable<SyntaxNode> nodes, ISymbol invocationSymbol, SemanticModel model )
         {
+            return 
+                (from node in nodes
+                 from identifier in node.DescendantNodes().Where((
+                 t => t is IdentifierNameSyntax || t is PredefinedTypeSyntax || t is GenericNameSyntax || t is ArrayTypeSyntax))
+                 select FindSymbolInfo(model, identifier) into typeSymbol
+                 where typeSymbol != null
+                 from member in CollectAllMembers(typeSymbol)
+                 select member).Any(member => member.Name.Equals(invocationSymbol.Name));
+
+            /*
+            var inspector = members[0];
+            var identifier = inspector.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            var symbol = model.GetSymbolInfo(identifier).Symbol;
+            var typeSymbol = symbol as ITypeSymbol;
+            var symbolsMembers = CollectAllMembers(typeSymbol);
+   
+
             return (from objectTypes in nodes.Select(x => x.DescendantNodes().Where
                 (t => t is IdentifierNameSyntax || t is PredefinedTypeSyntax || t is GenericNameSyntax || t is ArrayTypeSyntax))
                 from type in objectTypes
                 select FindSymbolInfo(model, type)
                 into symbolInfo
                 where symbolInfo != null
-                select CollectAllMembers(symbolInfo)).Any(member => member.Contains(invocationSymbol));
+                select CollectAllMembers(symbolInfo)).Any(member => member.Contains(invocationSymbol));          */
         }
 
         private ITypeSymbol FindSymbolInfo(SemanticModel model, SyntaxNode parameter)
         {
             //var symbol = model.GetSymbolInfo(parameter).Symbol;
             //if(symbol is INamedTypeSymbol|| symbol is IArrayTypeSymbol) return (ITypeSymbol)symbol;
-
             return model.GetSymbolInfo(parameter).Symbol as ITypeSymbol;
         }
 
@@ -122,7 +152,7 @@ namespace CodeAnalysis.Domain
                 parent = parent.BaseType;
             }
             return members;
-        }
+        }      
     }
 }
  
