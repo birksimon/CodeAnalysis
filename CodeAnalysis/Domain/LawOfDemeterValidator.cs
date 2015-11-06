@@ -22,12 +22,9 @@ namespace CodeAnalysis.Domain
         private OptimizationRecomendation GetLODViolations(Document document)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
-            var methodInvocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(document).ToList();
-
-            // Why is this necessary?!
-            //methodInvocations.RemoveAll(item => item == null);
-
+            var methodInvocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(document).ToList();            
             var lodViolations = new List<InvocationExpressionSyntax>();
+
             foreach (var methodInvocation in methodInvocations)
             {
                 if (semanticModel.GetSymbolInfo(methodInvocation).Symbol == null) 
