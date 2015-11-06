@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using CodeAnalysis.DataClasses;
-using CodeAnalysis.Domain;
 
 namespace CodeAnalysis.Output
 {
     internal class CSVWriter
     {
-        private const string MetricHeader = @"Solution;NOC;NOM;CYCLO;NOP;LOC;NOC/NOP;NOM/NOC;LOC/NOM;CYCLO/LOC";
-        private const string AnalysisHeader = @"Recommendation;Codefragment;Line;File";
+        private const string MetricHeader = "Solution;NOC;NOM;CYCLO;NOP;LOC;NOC/NOP;NOM/NOC;LOC/NOM;CYCLO/LOC";
+        private const string AnalysisHeader = "Recommendation;Codefragment;Line;File\n";
 
         public void WriteAnalysisResultToFile(string path, IEnumerable<OptimizationRecomendation> recommendations)
         {

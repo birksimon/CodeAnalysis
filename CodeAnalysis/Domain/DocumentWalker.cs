@@ -28,6 +28,8 @@ namespace CodeAnalysis.Domain
             {
                 if (parent is TNode)
                     return (TNode) parent;
+                if (parent.Parent == null)
+                    return null;
                 parent = parent.Parent;
             }
         }
