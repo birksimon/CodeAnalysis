@@ -11,8 +11,8 @@ namespace CodeAnalysis.Output
 
         public void WriteAnalysisResultToFile(string path, IEnumerable<OptimizationRecomendation> recommendations)
         {
-            InitializeFile(path, AnalysisHeader);
-            WriteRecommendations(path, recommendations);
+            InitializeFile(path + "/analysis.csv", AnalysisHeader);
+            WriteRecommendations(path + "/analysis.csv", recommendations);
         }
 
         private void InitializeFile(string path, string header)

@@ -34,7 +34,7 @@ namespace CodeAnalysis.Domain
         private IEnumerable<ReturnStatementSyntax> FilterForNullReturns(IEnumerable<ReturnStatementSyntax> returnStatements)
         {
             return from nullReturns in returnStatements
-                   where nullReturns.DescendantNodes().OfType<LiteralExpressionSyntax>().Any(r => r.RawKind == NullLiteralExpresision)
+                   where nullReturns.ChildNodes().OfType<LiteralExpressionSyntax>().Any(r => r.RawKind == NullLiteralExpresision)
                    select nullReturns;
         }
     }

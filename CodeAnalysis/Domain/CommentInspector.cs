@@ -58,8 +58,8 @@ namespace CodeAnalysis.Domain
 
         private bool IsCode(SyntaxTrivia comment)
         {
-            Regex commentRegex = new Regex(@"^\s*//.*;\s*$");
-            return commentRegex.IsMatch(comment.ToString());
+            Regex singeLineCommentRegex = new Regex(@"^\s*//.*;\s*$");
+            return singeLineCommentRegex.IsMatch(comment.ToString());
         }
 
         public IEnumerable<SyntaxTrivia> SearchForHeadliningComments(Document document)
@@ -87,7 +87,7 @@ namespace CodeAnalysis.Domain
 
             for (int i = 1; i <= SufficientBlockSize; i++)
             {
-                if (isLineInTree(comment.SyntaxTree.GetRoot(), lineNo + i))
+                if (IsLineInTree(comment.SyntaxTree.GetRoot(), lineNo + i))
                 {
                     var line = GetCodeInLine(comment.SyntaxTree, lineNo + i);
                     followingCode.Add(line);
@@ -100,7 +100,7 @@ namespace CodeAnalysis.Domain
 
         private bool IsLineAComment(int lineNumber, SyntaxTree tree)
         {
-            if (isLineInTree(tree.GetRoot(), lineNumber))
+            if (IsLineInTree(tree.GetRoot(), lineNumber))
             {
                 var line = GetCodeInLine(tree, lineNumber);
                 return line.ToString().StartsWith("//");
@@ -113,7 +113,7 @@ namespace CodeAnalysis.Domain
             return syntaxTree.GetText().Lines[lineNumber];
         }
 
-        private bool isLineInTree(SyntaxNode rootNode, int lineNumber)
+        private bool IsLineInTree(SyntaxNode rootNode, int lineNumber)
         {
             var endLine = rootNode.SyntaxTree.GetLineSpan(rootNode.FullSpan).EndLinePosition.Line;
             return !(endLine < lineNumber);

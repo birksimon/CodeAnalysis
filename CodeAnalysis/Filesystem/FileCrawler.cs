@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace CodeAnalysis
+namespace CodeAnalysis.Filesystem
 {
     class FileCrawler
     {

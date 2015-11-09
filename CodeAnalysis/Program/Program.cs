@@ -1,7 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using CodeAnalysis.DataClasses;
 using CodeAnalysis.Domain;
+using CodeAnalysis.Filesystem;
 using CodeAnalysis.Output;
+using Microsoft.CodeAnalysis;
 
 namespace CodeAnalysis.Program
 {
@@ -10,50 +15,65 @@ namespace CodeAnalysis.Program
         private static void Main(string[] args)
         {
             var directory = args[0];
-            var fileCrawler = new FileCrawler();
-            var solutionFilePaths = fileCrawler.GetSolutionsFromDirectory(directory).ToList();
-            var filesToIgnore = (fileCrawler.GetIgnoredFiles(directory)).ToList();
             var csvWriter = new CSVWriter();
-            var metricResultFile = directory + "/metrics.csv";
-            var analysisResultFile = directory + "/analysis.csv";
-            var workspaceHandler = new WorkspaceHandler();
             var stopwatch = new Stopwatch();
-            var metricCalculator = new MetricCalculator();
-            var nameInspector = new NameInspector();
-            var functionInspector = new FunctionInspector();
-            var commentInspector = new CommentInspector();
-            var lawOfDemeterValidator = new LawOfDemeterValidator();
 
             stopwatch.Start();
+            var analysisResult = RunAnalysis(directory);
+            csvWriter.WriteAnalysisResultToFile(directory, analysisResult);
+            stopwatch.Stop();          
+        }
 
-            foreach (var solution in solutionFilePaths)
+        private static IEnumerable<OptimizationRecomendation> RunAnalysis(string directory)
+        {
+            var solutionPaths = GetSolutionsFilePaths(directory);
+            var unfiltereSolutions = GetVisualStudioSolutions(solutionPaths);
+            var filteredSolutions = FilterSolutions(unfiltereSolutions);
+            var analyzers = GetAllAnalyzers().ToList();
+            var results = new List<OptimizationRecomendation>();
+
+            foreach (var solution in filteredSolutions)
             {
-                var vsSolution = workspaceHandler.CreateSolutionsFromFilePath(solution);
-                if (vsSolution == null) continue;
-                if (workspaceHandler.IsTestSolutions(vsSolution)) continue;
-                
-                var solutionWithoutTestFiles = workspaceHandler.RemoveTestFiles(vsSolution);
-                var filteredSolution = workspaceHandler.RemoveBlackListedDocuments(solutionWithoutTestFiles, filesToIgnore);
+                foreach (var analyzer in analyzers)
+                {
+                    results.AddRange(analyzer.Analyze(solution));
+                }
+            }
+            return results;
+        }
 
-                //var resultMetric = metricCalculator.AnalyzeSolution(filteredSolution);
-                var nameRecommendations = nameInspector.Analyze(filteredSolution).ToList();
-                var functionRecommendations = functionInspector.Analyze(filteredSolution).ToList();
-                var commentRecommendations = commentInspector.Analyze(filteredSolution).ToList();
-                var demeterViolations = lawOfDemeterValidator.Analyze(filteredSolution).ToList();
+        private static IEnumerable<string> GetSolutionsFilePaths(string directory)
+        {
+            var fileCrawler = new FileCrawler();
+            return fileCrawler.GetSolutionsFromDirectory(directory);
+        }
 
-               // csvWriter.WriteResultMetricsToFile(metricResultFile, resultMetric);
-               csvWriter.WriteAnalysisResultToFile(analysisResultFile, nameRecommendations);
-               csvWriter.WriteAnalysisResultToFile(analysisResultFile, functionRecommendations);
-               csvWriter.WriteAnalysisResultToFile(analysisResultFile, commentRecommendations);
-               csvWriter.WriteAnalysisResultToFile(analysisResultFile, demeterViolations);
+        private static IEnumerable<Solution> GetVisualStudioSolutions(IEnumerable<string> solutionFilePaths)
+        {
+            var workspaceHandler = new WorkspaceHandler();
+            var unfilteredSolutions = solutionFilePaths.Select(solution => workspaceHandler.CreateSolutionsFromFilePath(solution));
+            return FilterSolutions(unfilteredSolutions);
+        }
 
-                // ConsolePrinter.PrintMetrics(resultMetric);
-                // ConsolePrinter.PrintRecomendations(nameRecommendations);
-                // ConsolePrinter.PrintRecomendations(functionRecommendations);
-            } 
+        private static IEnumerable<Solution> FilterSolutions(IEnumerable<Solution> solutions, string pathBlackList = "")
+        {
+            var fileCrawler = new FileCrawler();
+            var workspaceHandler = new WorkspaceHandler();
+            var ienumSolutions = solutions.ToList();
+            ienumSolutions.RemoveAll(item => item == null);
+            var solutionsWithoutTests = ienumSolutions.Select(solution => workspaceHandler.RemoveTestFiles(solution));
+            var filesToIgnore = fileCrawler.GetIgnoredFiles(pathBlackList);
+            var solutionsWithoutBlackListFiles =solutionsWithoutTests.Select(solution => workspaceHandler.RemoveBlackListedDocuments(solution, filesToIgnore));
+            return solutionsWithoutBlackListFiles;
+        }
 
-            stopwatch.Stop();
-            ConsolePrinter.PrintStuff("Time taken: ", stopwatch.Elapsed);
-        }        
+        private static IEnumerable<ICodeAnalyzer> GetAllAnalyzers()
+        {
+            var type = typeof(ICodeAnalyzer);
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => type.IsAssignableFrom(p) && !p.IsInterface);
+            return types.Select(t => (ICodeAnalyzer) Activator.CreateInstance(t));
+        }
     }
 }
