@@ -9,6 +9,7 @@
         CommentHeadline,
         CodeInComment,
         DocumentationOnPrivateSoftwareUnits,
-        LODViolation
+        LODViolation,
+        NullReturn
     }
 }

@@ -8,13 +8,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CodeAnalysis.Domain
 {
-    /// <summary>
-    /// this is a function that does stuff
-    /// </summary>
-    /// <param name="document">is some kind of document</param>
-    /// <param name="nothing else">document was the only parameter</param>
-    /// <returns>nothing
-    /// and more of nothing</returns>
     internal class CommentInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
