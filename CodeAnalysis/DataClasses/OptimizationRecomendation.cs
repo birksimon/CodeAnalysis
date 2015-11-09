@@ -20,7 +20,8 @@ namespace CodeAnalysis.DataClasses
                 { RecommendationType.CodeInComment, "Do not comment out code. Delete it!." },
                 { RecommendationType.DocumentationOnPrivateSoftwareUnits, "Only use documentation on public API elements." },
                 { RecommendationType.LODViolation, "Only talk to your closest frieds. Try to encapsulate nested method call." },
-                { RecommendationType.NullReturn, "Do not return null. In case of error throw exception." }
+                { RecommendationType.NullReturn, "Do not return null. In case of error throw exception." },
+                { RecommendationType.NullArgument, "Do not handover null-Arguments" }
             };
 
         private const char Semicolon = ';';

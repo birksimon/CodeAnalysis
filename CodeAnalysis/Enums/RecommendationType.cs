@@ -10,6 +10,7 @@
         CodeInComment,
         DocumentationOnPrivateSoftwareUnits,
         LODViolation,
-        NullReturn
+        NullReturn,
+        NullArgument
     }
 }

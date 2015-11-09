@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
 using Microsoft.CodeAnalysis;
@@ -21,6 +18,7 @@ namespace CodeAnalysis.Domain
             foreach (var document in documents)
             {
                 yield return FindNullReturnValues(document);
+                yield return FindNullArguments(document);
             }
         }
 
@@ -29,6 +27,27 @@ namespace CodeAnalysis.Domain
             var returnStatements = _documentWalker.GetNodesFromDocument<ReturnStatementSyntax>(doc);
             var nullReturns = FilterForNullReturns(returnStatements);
             return _documentWalker.CreateRecommendations(doc, nullReturns, RecommendationType.NullReturn);
+        }
+
+        private OptimizationRecomendation FindNullArguments(Document doc)
+        {
+            var invocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(doc);
+            var argumentLists = invocations.Select(invocation => invocation.ArgumentList).ToList();
+            var nullArguments = FilterForNullArguments(argumentLists);
+            return _documentWalker.CreateRecommendations(doc, nullArguments, RecommendationType.NullArgument);
+        }
+
+        private IEnumerable<ArgumentListSyntax> FilterForNullArguments(IEnumerable<ArgumentListSyntax> argumentLists)
+        {
+            var arguments = new List<ArgumentSyntax>();
+            foreach (var argumentList in argumentLists)
+            {
+                arguments.AddRange(argumentList.Arguments);
+            }
+            return from argument in arguments where argument.ChildNodes()
+                .OfType<LiteralExpressionSyntax>()
+                .Any(r => r.RawKind == NullLiteralExpresision)
+                select argument.Parent as ArgumentListSyntax;
         }
 
         private IEnumerable<ReturnStatementSyntax> FilterForNullReturns(IEnumerable<ReturnStatementSyntax> returnStatements)
