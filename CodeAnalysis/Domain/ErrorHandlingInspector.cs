@@ -68,6 +68,7 @@ namespace CodeAnalysis.Domain
 
         public bool IsInCatchBlock(ReturnStatementSyntax returnStatement)
         {
+            
             return false;
         }
 

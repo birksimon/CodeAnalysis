@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
+using CodeAnalysis.Domain.Exceptions;
 using CodeAnalysis.Enums;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -24,14 +25,29 @@ namespace CodeAnalysis.Domain
         public TNode GetContainingNodeOfType<TNode>(SyntaxNode node) where TNode : CSharpSyntaxNode
         {
             var parent = node.Parent;
-            while (true)
+            while (parent != null)
             {
                 if (parent is TNode)
                     return (TNode) parent;
-                if (parent.Parent == null)
-                    return null;
                 parent = parent.Parent;
             }
+            throw new NodeDoesNotExistException($"Node {node} does not have a parent of type {typeof(TNode)}.");
+        }
+
+        public bool TryGetContainingNodeOfType<TNode>(SyntaxNode node, out TNode containingNode) where TNode : CSharpSyntaxNode
+        {
+            var parent = node.Parent;
+            while (parent != null)
+            {
+                if (parent is TNode)
+                {
+                    containingNode = (TNode) parent;
+                    return true;
+                }
+                parent = parent.Parent;
+            }
+            containingNode = null;
+            return false;
         }
 
         public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<CSharpSyntaxNode> nodes, RecommendationType recommendation)
