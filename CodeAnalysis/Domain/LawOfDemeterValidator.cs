@@ -23,26 +23,17 @@ namespace CodeAnalysis.Domain
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
             var methodInvocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(document).ToList();            
-            var lodViolations = new List<InvocationExpressionSyntax>();
+            var lodViolations = 
+                (from methodInvocation in methodInvocations
+                 where semanticModel.GetSymbolInfo(methodInvocation).Symbol != null
+                 where !IsInvocationOfContainingType(methodInvocation, semanticModel)
+                 where !IsInvocationOfContainingMethodsParameters(methodInvocation, semanticModel)
+                 where !IsInvocationOfContainingTypesMembers(methodInvocation, semanticModel)
+                 where !IsInvocationOfInMethodCreatedObject(methodInvocation, semanticModel)
+                 where !IsStaticInvocation(methodInvocation, semanticModel)
+                 where !IsExtensionMethodInvocation(methodInvocation, semanticModel)
+                 select methodInvocation).ToList();
 
-            foreach (var methodInvocation in methodInvocations)
-            {
-                if (semanticModel.GetSymbolInfo(methodInvocation).Symbol == null) 
-                    continue;
-                if (IsInvocationOfContainingType(methodInvocation, semanticModel))
-                    continue;
-                if (IsInvocationOfContainingMethodsParameters(methodInvocation, semanticModel))
-                    continue;
-                if (IsInvocationOfContainingTypesMembers(methodInvocation, semanticModel))
-                    continue;
-                if (IsInvocationOfInMethodCreatedObject(methodInvocation, semanticModel))
-                    continue;
-                if (IsStaticInvocation(methodInvocation, semanticModel))
-                    continue;
-                if (IsExtensionMethodInvocation(methodInvocation, semanticModel))
-                    continue;
-                lodViolations.Add(methodInvocation);
-            }
             return _documentWalker.CreateRecommendations(document, lodViolations, RecommendationType.LODViolation);
         }
         
@@ -60,11 +51,13 @@ namespace CodeAnalysis.Domain
             SemanticModel model)
         {
             var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
-            var containingMethod = _documentWalker.GetContainingNodeOfType<MethodDeclarationSyntax>(invocation);
-            if (containingMethod == null)
-                return false;
-            var parameters = containingMethod.ParameterList.Parameters;
-            return IsSymbolInvocationOfNodes(parameters, invocationSymbol, model);
+            MethodDeclarationSyntax containingMethod;
+            if (_documentWalker.TryGetContainingNodeOfType(invocation, out containingMethod))
+            {
+                var parameters = containingMethod.ParameterList.Parameters;
+                return IsSymbolInvocationOfNodes(parameters, invocationSymbol, model);
+            }
+            return false;
         }
 
         private bool IsInvocationOfContainingTypesMembers(InvocationExpressionSyntax invocation, SemanticModel model)
@@ -80,11 +73,13 @@ namespace CodeAnalysis.Domain
         private bool IsInvocationOfInMethodCreatedObject(InvocationExpressionSyntax invocation, SemanticModel model)
         {
             var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
-            var containingMethod = _documentWalker.GetContainingNodeOfType<MethodDeclarationSyntax>(invocation);
-            if (containingMethod == null)
-                return false;
-            var objectCreations = containingMethod.DescendantNodes().OfType<LocalDeclarationStatementSyntax>();
-            return IsSymbolInvocationOfNodes(objectCreations, invocationSymbol, model);
+            MethodDeclarationSyntax containingMethod; 
+            if (_documentWalker.TryGetContainingNodeOfType(invocation, out containingMethod))
+            {
+                var objectCreations = containingMethod.DescendantNodes().OfType<LocalDeclarationStatementSyntax>();
+                return IsSymbolInvocationOfNodes(objectCreations, invocationSymbol, model);
+            }
+            return false;
         }
 
         private bool IsStaticInvocation(InvocationExpressionSyntax invocation, SemanticModel model)

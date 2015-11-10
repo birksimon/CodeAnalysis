@@ -99,6 +99,7 @@
     <Compile Include="Domain\CommentInspector.cs" />
     <Compile Include="Domain\DocumentWalker.cs" />
     <Compile Include="Domain\ErrorHandlingInspector.cs" />
+    <Compile Include="Domain\Exceptions\NodeDoesNotExistException.cs" />
     <Compile Include="Domain\FunctionInspector.cs" />
     <Compile Include="Domain\ICodeAnalyzer.cs" />
     <Compile Include="Domain\LawOfDemeterValidator.cs" />

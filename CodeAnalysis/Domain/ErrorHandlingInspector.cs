@@ -11,6 +11,8 @@ namespace CodeAnalysis.Domain
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         private const int NullLiteralExpresision = 8754;
+        private const int NumericLiteralExpression = 8749;
+        private const int UnaryMinusExpression = 8731;
 
         public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
         {
@@ -40,38 +42,17 @@ namespace CodeAnalysis.Domain
 
         private OptimizationRecomendation FindErrorFlags(Document doc)
         {
-            var returns = _documentWalker.GetNodesFromDocument<ReturnStatementSyntax>(doc);
-            var errorFlagCandidates = new List<ReturnStatementSyntax>();
-
-            foreach (var flag in errorFlagCandidates)
-            {
-                if (IsAbsoluteValue(flag))
-                {
-                    errorFlagCandidates.Add(flag);
-                    continue;
-                }
-                if (IsInCatchBlock(flag))
-                    errorFlagCandidates.Add(flag);
-            }
+            var returnStatements = _documentWalker.GetNodesFromDocument<ReturnStatementSyntax>(doc);
+            var errorFlagCandidates = returnStatements.Where(IsAbsoluteValue).ToList();
             return _documentWalker.CreateRecommendations(doc, errorFlagCandidates, RecommendationType.ErrorFlag);
         }
 
         public bool IsAbsoluteValue(ReturnStatementSyntax returnStatement)
         {
-            if (returnStatement.ChildNodes().OfType<LiteralExpressionSyntax>().Count() >= 0)
-                return true;
-            if (returnStatement.ChildNodes().OfType<PrefixUnaryExpressionSyntax>().Count() >= 0)
-                return true;
-
-            return false;
+            return returnStatement.ChildNodes().OfType<LiteralExpressionSyntax>().Any(n => n.RawKind == NumericLiteralExpression)
+                || returnStatement.ChildNodes().OfType<PrefixUnaryExpressionSyntax>().Any(n => n.RawKind == UnaryMinusExpression);
         }
-
-        public bool IsInCatchBlock(ReturnStatementSyntax returnStatement)
-        {
-            
-            return false;
-        }
-
+       
         private IEnumerable<ArgumentListSyntax> FilterForNullArguments(IEnumerable<ArgumentListSyntax> argumentLists)
         {
             var arguments = new List<ArgumentSyntax>();
@@ -79,10 +60,9 @@ namespace CodeAnalysis.Domain
             {
                 arguments.AddRange(argumentList.Arguments);
             }
-            return from argument in arguments where argument.ChildNodes()
-                .OfType<LiteralExpressionSyntax>()
-                .Any(r => r.RawKind == NullLiteralExpresision)
-                select argument.Parent as ArgumentListSyntax;
+            return from argument in arguments
+                   where argument.ChildNodes().OfType<LiteralExpressionSyntax>().Any(r => r.RawKind == NullLiteralExpresision)
+                   select argument.Parent as ArgumentListSyntax;
         }
 
         private IEnumerable<ReturnStatementSyntax> FilterForNullReturns(IEnumerable<ReturnStatementSyntax> returnStatements)

@@ -50,6 +50,18 @@ namespace CodeAnalysis.Domain
             return false;
         }
 
+        public bool HasContainingNodeOfType<TNode>(SyntaxNode node) where TNode : CSharpSyntaxNode
+        {
+            var parent = node.Parent;
+            while (parent != null)
+            {
+                if (parent is TNode)
+                    return true;
+                parent = parent.Parent;
+            }
+            return false;
+        }
+
         public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<CSharpSyntaxNode> nodes, RecommendationType recommendation)
         {
             var occurences = GenerateRuleViolationOccurences(nodes, document);
