@@ -19,6 +19,7 @@ namespace CodeAnalysis.Domain
             {
                 yield return FindNullReturnValues(document);
                 yield return FindNullArguments(document);
+                yield return FindErrorFlags(document);
             }
         }
 
@@ -35,6 +36,39 @@ namespace CodeAnalysis.Domain
             var argumentLists = invocations.Select(invocation => invocation.ArgumentList).ToList();
             var nullArguments = FilterForNullArguments(argumentLists);
             return _documentWalker.CreateRecommendations(doc, nullArguments, RecommendationType.NullArgument);
+        }
+
+        private OptimizationRecomendation FindErrorFlags(Document doc)
+        {
+            var returns = _documentWalker.GetNodesFromDocument<ReturnStatementSyntax>(doc);
+            var errorFlagCandidates = new List<ReturnStatementSyntax>();
+
+            foreach (var flag in errorFlagCandidates)
+            {
+                if (IsAbsoluteValue(flag))
+                {
+                    errorFlagCandidates.Add(flag);
+                    continue;
+                }
+                if (IsInCatchBlock(flag))
+                    errorFlagCandidates.Add(flag);
+            }
+            return _documentWalker.CreateRecommendations(doc, errorFlagCandidates, RecommendationType.ErrorFlag);
+        }
+
+        public bool IsAbsoluteValue(ReturnStatementSyntax returnStatement)
+        {
+            if (returnStatement.ChildNodes().OfType<LiteralExpressionSyntax>().Count() >= 0)
+                return true;
+            if (returnStatement.ChildNodes().OfType<PrefixUnaryExpressionSyntax>().Count() >= 0)
+                return true;
+
+            return false;
+        }
+
+        public bool IsInCatchBlock(ReturnStatementSyntax returnStatement)
+        {
+            return false;
         }
 
         private IEnumerable<ArgumentListSyntax> FilterForNullArguments(IEnumerable<ArgumentListSyntax> argumentLists)

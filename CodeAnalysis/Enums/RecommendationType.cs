@@ -11,6 +11,7 @@
         DocumentationOnPrivateSoftwareUnits,
         LODViolation,
         NullReturn,
-        NullArgument
+        NullArgument,
+        ErrorFlag
     }
 }

@@ -21,7 +21,8 @@ namespace CodeAnalysis.DataClasses
                 { RecommendationType.DocumentationOnPrivateSoftwareUnits, "Only use documentation on public API elements." },
                 { RecommendationType.LODViolation, "Only talk to your closest frieds. Try to encapsulate nested method call." },
                 { RecommendationType.NullReturn, "Do not return null. In case of error throw exception." },
-                { RecommendationType.NullArgument, "Do not handover null-Arguments" }
+                { RecommendationType.NullArgument, "Do not handover null-Arguments" },
+                { RecommendationType.ErrorFlag, "Do not use error flags. E.g. throw an exception instead." }
             };
 
         private const char Semicolon = ';';
