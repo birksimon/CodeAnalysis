@@ -40,8 +40,6 @@ namespace CodeAnalysis.Domain
                 var semanticModel = document.GetSemanticModelAsync().Result;
                 foreach (var declaration in typeDeclarations)
                 {
-                    var candidate = declaration.ChildTokens().First(t => t.RawKind == IdentifierToken);
-                    IdentifierNameSyntax identifierNameSyntax;
                     var symbolInfo = semanticModel.GetDeclaredSymbol(declaration);
                     if (symbolInfo == null) continue;
                     if (symbolInfo.TypeKind == TypeKind.Interface) continue;
@@ -71,27 +69,22 @@ namespace CodeAnalysis.Domain
                 {
                     foreach (var entry in list.Types)
                     {
-                        //var baseType = entry.DescendantTokens().First(t => t.RawKind == IdentifierToken);
                         var baseType = entry.DescendantNodes().OfType<IdentifierNameSyntax>().First();
                         var derivee = list.Parent.ChildTokens().First(t => t.RawKind == IdentifierToken);
 
-                      // TypeDeclarationSyntax typeDeclarationSyntax;
-                      //  if (_documentWalker.TryGetContainingNodeOfType<TypeDeclarationSyntax>(baseType, out typeDeclarationSyntax)) 
-                      //  {
-                            var symbolInfo = semanticModel.GetSymbolInfo(baseType).Symbol as INamedTypeSymbol;
-                            if (symbolInfo == null) continue;
-                            if (symbolInfo.TypeKind == TypeKind.Interface) continue;
+                        var symbolInfo = semanticModel.GetSymbolInfo(baseType).Symbol as INamedTypeSymbol;
+                        if (symbolInfo == null) continue;
+                        if (symbolInfo.TypeKind == TypeKind.Interface) continue;
 
 
-                            if (derivees.ContainsKey(symbolInfo))
-                            {
-                                derivees[symbolInfo].Add(derivee);
-                            }
-                            else
-                            {
-                                derivees.Add(symbolInfo, new List<SyntaxToken>(new[] { derivee }));
-                            }
-                       // }
+                        if (derivees.ContainsKey(symbolInfo))
+                        {
+                            derivees[symbolInfo].Add(derivee);
+                        }
+                        else
+                        {
+                            derivees.Add(symbolInfo, new List<SyntaxToken>(new[] { derivee }));
+                        }
                     }
                 }
             }
@@ -122,96 +115,4 @@ namespace CodeAnalysis.Domain
             }    
         }
     }
-
-
 }
-/*
-internal class InheritanceInspector : ICodeAnalyzer
-    {
-        private readonly DocumentWalker _documentWalker = new DocumentWalker();
-        private Dictionary<IdentifierNameSyntax, InheritanceDataHolder> _baseAndDerivedTypes
-            = new Dictionary<IdentifierNameSyntax, InheritanceDataHolder>();
-
-        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
-        {
-            FindAllBaseAndDerivedTypes(solution);
-            //Find Dependencies -> Instanziierung, zugriff auf Static Attribute/Methoden
-            var blub = FindDependenciesFromDerivedTypes();
-            return new List<OptimizationRecomendation>();
-
-        }
-
-        private void FindAllBaseAndDerivedTypes(Solution solution)
-        {
-            var docs = _documentWalker.GetAllDocumentsFromSolution(solution);
-            foreach (var doc in docs)
-            {
-                var semanticModel = doc.GetSemanticModelAsync().Result;
-                var baseTypeCandidates = _documentWalker.GetNodesFromDocument<BaseTypeSyntax>(doc).ToList();
-                if (!baseTypeCandidates.Any()) continue;
-                List<IdentifierNameSyntax> identifiersOfCandidates = baseTypeCandidates.Select
-                    (type => type.DescendantNodes().OfType<IdentifierNameSyntax>().First()).ToList();
-                var baseTypes = ValidateFoundTypes(identifiersOfCandidates, doc);
-                var derivedType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(baseTypeCandidates.First());
-                StoreInDictionary(baseTypes, derivedType, semanticModel);
-            }
-        }
-
-        private Dictionary<IdentifierNameSyntax, InheritanceDataHolder> FindDependenciesFromDerivedTypes()
-        {
-            var matches = new Dictionary<IdentifierNameSyntax, InheritanceDataHolder>();
-            foreach (var baseType in _baseAndDerivedTypes.Keys)
-            {
-                var semanticModel = _baseAndDerivedTypes[baseType].Model;
-                var objectCreations = baseType.DescendantNodes().OfType<ObjectCreationExpressionSyntax>();
-                var objectIdentifiers = objectCreations.Select(creation => creation.DescendantNodes().OfType<IdentifierNameSyntax>().First()).ToList();
-
-                var derivees = _baseAndDerivedTypes[baseType].Derivees;
-                
-                foreach (var identifier in objectIdentifiers)
-                {
-                    var creationSymbol = semanticModel.GetSymbolInfo(identifier);
-                    foreach (var derivee in derivees)
-                    {
-                        var deriveeSymbol = semanticModel.GetSymbolInfo(derivee);
-                        if (deriveeSymbol.Equals(creationSymbol))
-                            matches.Add(baseType, _baseAndDerivedTypes[baseType]);
-                    }
-                }
-            }
-            return matches;
-        }
-
-        private IEnumerable<IdentifierNameSyntax> ValidateFoundTypes(IEnumerable<IdentifierNameSyntax> identifiers, Document doc)
-        {
-            var semanticModel = doc.GetSemanticModelAsync().Result;
-
-
-
-
-            return from identifier in identifiers
-                   let typeSymbol = semanticModel.GetSymbolInfo(identifier).Symbol as INamedTypeSymbol
-                   where typeSymbol != null where typeSymbol.TypeKind != TypeKind.Interface
-                   select identifier;
-        }
-
-        private void StoreInDictionary(IEnumerable<IdentifierNameSyntax> baseTypes, TypeDeclarationSyntax derivedType, SemanticModel model)
-        {
-            foreach (var type in baseTypes)
-            {
-                if (_baseAndDerivedTypes.ContainsKey(type))
-                {
-                    _baseAndDerivedTypes[type].AddDerivee(derivedType);
-                }
-                else
-                {
-                    var holder = new InheritanceDataHolder {Model = model};
-                    holder.AddDerivee(derivedType);
-                    _baseAndDerivedTypes.Add(type, holder);   
-                }
-            }
-        }
-
-    }
-}
-*/
