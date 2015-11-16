@@ -43,18 +43,24 @@ namespace CodeAnalysis.Domain
                     var symbolInfo = semanticModel.GetDeclaredSymbol(declaration);
                     if (symbolInfo == null) continue;
                     if (symbolInfo.TypeKind == TypeKind.Interface) continue;
-
-                    if (baseTypes.ContainsKey(tree))
-                    {
-                        baseTypes[tree].Add(symbolInfo);
-                    }
-                    else
-                    {
-                        baseTypes.Add(tree, new List<INamedTypeSymbol>(new[] { symbolInfo }));
-                    }
+                    AddToDictionaryList(baseTypes, tree, symbolInfo);
                 }
             }
             return baseTypes;
+        }
+        
+        private Dictionary<TKey, List<TListValue>> AddToDictionaryList<TKey, TListValue> (
+            Dictionary<TKey, List<TListValue>> dict, TKey key, TListValue listValue)
+        {
+            if (dict.ContainsKey(key))
+            {
+                dict[key].Add(listValue);
+            }
+            else
+            {
+                dict.Add(key, new List<TListValue>(new [] { listValue }));
+            }
+            return null;
         }
 
         private Dictionary<INamedTypeSymbol, List<SyntaxToken>> FindAllDerivees(IEnumerable<Document> documents)
@@ -75,16 +81,7 @@ namespace CodeAnalysis.Domain
                         var symbolInfo = semanticModel.GetSymbolInfo(baseType).Symbol as INamedTypeSymbol;
                         if (symbolInfo == null) continue;
                         if (symbolInfo.TypeKind == TypeKind.Interface) continue;
-
-
-                        if (derivees.ContainsKey(symbolInfo))
-                        {
-                            derivees[symbolInfo].Add(derivee);
-                        }
-                        else
-                        {
-                            derivees.Add(symbolInfo, new List<SyntaxToken>(new[] { derivee }));
-                        }
+                        AddToDictionaryList(derivees, symbolInfo, derivee);
                     }
                 }
             }
