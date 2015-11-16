@@ -34,6 +34,18 @@ namespace CodeAnalysis.Domain
             throw new NodeDoesNotExistException($"Node {node} does not have a parent of type {typeof(TNode)}.");
         }
 
+        public TNode GetContainingNodeOfType<TNode> (SyntaxToken token) where TNode:CSharpSyntaxNode
+        {
+            var parent = token.Parent;
+            while (parent != null)
+            {
+                if (parent is TNode)
+                    return (TNode)parent;
+                parent = parent.Parent;
+            }
+            throw new NodeDoesNotExistException($"Node {token} does not have a parent of type {typeof(TNode)}.");
+        }
+
         public bool TryGetContainingNodeOfType<TNode>(SyntaxNode node, out TNode containingNode) where TNode : CSharpSyntaxNode
         {
             var parent = node.Parent;
@@ -42,6 +54,22 @@ namespace CodeAnalysis.Domain
                 if (parent is TNode)
                 {
                     containingNode = (TNode) parent;
+                    return true;
+                }
+                parent = parent.Parent;
+            }
+            containingNode = null;
+            return false;
+        }
+
+        public bool TryGetContainingNodeOfType<TNode>(SyntaxToken token, out TNode containingNode) where TNode : CSharpSyntaxNode
+        {
+            var parent = token.Parent;
+            while (parent != null)
+            {
+                if (parent is TNode)
+                {
+                    containingNode = (TNode)parent;
                     return true;
                 }
                 parent = parent.Parent;
