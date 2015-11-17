@@ -109,7 +109,6 @@ namespace CodeAnalysis.Domain
             return dependencyViolations;
         }
 
-
         private IEnumerable<InheritanceDataHolder> FindDependencies <T>
             (InheritanceDataHolder baseTypeAndDerivees, SyntaxNode root, SemanticModel semanticModel) where T:SyntaxNode
         {
@@ -125,11 +124,9 @@ namespace CodeAnalysis.Domain
                 var instSymbol = semanticModel.GetSymbolInfo(instantiation).Symbol;
                 if (instSymbol == null) continue;
                 var instBase = instSymbol.ContainingSymbol;
-                if (instBase.Equals(baseTypeAndDerivees.Derivee))
-                {
-                    var holder = new InheritanceDataHolder(baseTypeAndDerivees) { Violation = instantiation };
-                    yield return holder;
-                }
+                if (!instBase.Equals(baseTypeAndDerivees.Derivee)) continue;
+                var holder = new InheritanceDataHolder(baseTypeAndDerivees) { Violation = instantiation };
+                yield return holder;
             }
         }
 
@@ -155,26 +152,26 @@ namespace CodeAnalysis.Domain
             }
         }
 
-        private bool DictionaryContainsValueInList<TKey, TValue>(Dictionary<TKey, List<TValue>> dict, TValue value, out TKey key)
+        private bool DictionaryContainsValueInList<TKey, TValue>(Dictionary<TKey, List<TValue>> dict, TValue valueParam, out TKey keyParam)
         {
             foreach (var list in  dict.Values)
             {
                 foreach (var item in list)
                 {
-                    if (item.Equals(value))
+                    if (item.Equals(valueParam))
                     {
-                        foreach (var schlussel in dict.Keys)
+                        foreach (var key in dict.Keys)
                         {
-                            if (dict[schlussel].Equals(list))
+                            if (dict[key].Equals(list))
                             {
-                                key = schlussel;
+                                keyParam = key;
                                 return true;
                             }
                         }
                     }
                 }
             }
-            key = default(TKey);
+            keyParam = default(TKey);
             return false;
         }
     }
