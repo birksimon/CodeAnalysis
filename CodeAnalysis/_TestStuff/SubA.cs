@@ -12,5 +12,10 @@ namespace CodeAnalysis._TestStuff
         {
             Console.WriteLine(bar);
         }
+
+        public static void Bar()
+        {
+            Console.WriteLine("bar");
+        }
     }
 }

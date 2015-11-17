@@ -12,6 +12,7 @@
         LODViolation,
         NullReturn,
         NullArgument,
-        ErrorFlag
+        ErrorFlag, 
+        InheritanceDependency
     }
 }

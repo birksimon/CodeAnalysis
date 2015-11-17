@@ -10,6 +10,7 @@ namespace CodeAnalysis._TestStuff
             sub.Test();
             var sub2 = new SubA();
             Console.WriteLine("dummy");
+            SubA.Bar();
         }
     }
 }

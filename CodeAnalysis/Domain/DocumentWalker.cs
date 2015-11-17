@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
@@ -90,7 +91,7 @@ namespace CodeAnalysis.Domain
             return false;
         }
 
-        public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<CSharpSyntaxNode> nodes, RecommendationType recommendation)
+        public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<SyntaxNode> nodes, RecommendationType recommendation)
         {
             var occurences = GenerateRuleViolationOccurences(nodes, document);
             return new OptimizationRecomendation(recommendation, occurences);
@@ -102,7 +103,7 @@ namespace CodeAnalysis.Domain
             return new OptimizationRecomendation(recommendation, occurences);
         }
 
-        private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<CSharpSyntaxNode> syntaxNode, Document document)
+       private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<SyntaxNode> syntaxNode, Document document)
         {
             var tree = document.GetSyntaxTreeAsync().Result;
             return syntaxNode.Select(declaration => new Occurence()
