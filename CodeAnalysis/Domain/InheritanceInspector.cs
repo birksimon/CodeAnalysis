@@ -26,12 +26,12 @@ namespace CodeAnalysis.Domain
     internal class InheritanceInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
-
+        
         public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution).ToList();
             var candidates = FindBaseTypeCandidates(documents);
-            var baseTypesAndDerivees = FindAllDerivees(documents, candidates); //TODO Merge into one list
+            var baseTypesAndDerivees = FindAllDerivees(documents, candidates); 
             var dependencyViolations = FindViolations(baseTypesAndDerivees);
 
             var formattedData = FormatData(dependencyViolations);
@@ -140,7 +140,7 @@ namespace CodeAnalysis.Domain
             return dict;
         }
 
-        private void AddToDictionariesList<TKey, TValue>(Dictionary<TKey, List<TValue>> dict, TKey key, TValue value)
+        public void AddToDictionariesList<TKey, TValue>(Dictionary<TKey, List<TValue>> dict, TKey key, TValue value)
         {
             if (dict.ContainsKey(key))
             {
