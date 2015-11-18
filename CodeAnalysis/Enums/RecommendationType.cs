@@ -13,6 +13,7 @@
         NullReturn,
         NullArgument,
         ErrorFlag, 
-        InheritanceDependency
+        InheritanceDependency,
+        LimitCondition
     }
 }

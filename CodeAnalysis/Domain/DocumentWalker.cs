@@ -6,6 +6,7 @@ using CodeAnalysis.Domain.Exceptions;
 using CodeAnalysis.Enums;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeAnalysis.Domain
 {
@@ -103,7 +104,13 @@ namespace CodeAnalysis.Domain
             return new OptimizationRecomendation(recommendation, occurences);
         }
 
-       private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<SyntaxNode> syntaxNode, Document document)
+        public OptimizationRecomendation CreateRecommendations(Document document, List<KeyValuePair<BinaryExpressionSyntax,BinaryExpressionSyntax>> nodes, RecommendationType recommendation)
+        {
+            var occurences = GenerateRuleViolationOccurences(nodes, document);
+            return new OptimizationRecomendation(recommendation, occurences);
+        }
+
+        private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<SyntaxNode> syntaxNode, Document document)
         {
             var tree = document.GetSyntaxTreeAsync().Result;
             return syntaxNode.Select(declaration => new Occurence()
@@ -123,6 +130,22 @@ namespace CodeAnalysis.Domain
                 Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
                 CodeFragment = declaration.ToString()
             });
+        }
+
+        private IEnumerable<Occurence> GenerateRuleViolationOccurences(List<KeyValuePair<BinaryExpressionSyntax, BinaryExpressionSyntax>> syntaxNodes, Document document)
+        {
+            var tree = document.GetSyntaxTreeAsync().Result;
+
+            foreach (var nodePair in syntaxNodes)
+            {
+                yield return new Occurence()
+                {
+                    File = document.FilePath,
+                    Line = tree.GetLineSpan(nodePair.Key.FullSpan).ToString().Split(' ').Last() + " & " +
+                           tree.GetLineSpan(nodePair.Value.FullSpan).ToString().Split(' ').Last(),
+                    CodeFragment = nodePair.Key + " & " +  nodePair.Value
+                };
+            }
         }
     }
 }

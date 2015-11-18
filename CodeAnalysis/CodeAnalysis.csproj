@@ -104,6 +104,7 @@
     <Compile Include="Domain\ICodeAnalyzer.cs" />
     <Compile Include="Domain\InheritanceInspector.cs" />
     <Compile Include="Domain\LawOfDemeterValidator.cs" />
+    <Compile Include="Domain\LimitConditionInspector.cs" />
     <Compile Include="Domain\MetricCalculator.cs" />
     <Compile Include="Domain\NameInspector.cs" />
     <Compile Include="Domain\WorkspaceHandler.cs" />

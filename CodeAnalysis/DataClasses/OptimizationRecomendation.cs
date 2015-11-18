@@ -23,7 +23,8 @@ namespace CodeAnalysis.DataClasses
                 { RecommendationType.NullReturn, "Do not return null. In case of error throw exception." },
                 { RecommendationType.NullArgument, "Do not handover null-Arguments" },
                 { RecommendationType.ErrorFlag, "Do not use error flags. E.g. throw an exception instead." },
-                { RecommendationType.InheritanceDependency, "Base classes should not know about their derived classes." }
+                { RecommendationType.InheritanceDependency, "Base classes should not know about their derived classes." },
+                { RecommendationType.LimitCondition, "Do not repeatly use the same limit condition. Encapsulate it in a new variable instead." }
             };
 
         private const char Semicolon = ';';
