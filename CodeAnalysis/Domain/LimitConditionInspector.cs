@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
@@ -73,58 +74,56 @@ namespace CodeAnalysis.Domain
 
             for (var i = 0; i < exp1AndNestings.Count(); i++)
             {
-                var exp1LeftLiteral = exp1AndNestings[i].Left as LiteralExpressionSyntax;
-                var exp1RightLiteral = exp1AndNestings[i].Right as LiteralExpressionSyntax;
-                var exp2LeftLiteral = exp2AndNestings[i].Left as LiteralExpressionSyntax;
-                var exp2RightLiteral = exp2AndNestings[i].Right as LiteralExpressionSyntax;
-
-                var exp1LeftSymbol = semanticModel.GetSymbolInfo(exp1AndNestings[i].Left).Symbol;
-                var exp1RightSymbol = semanticModel.GetSymbolInfo(exp1AndNestings[i].Right).Symbol;
-                var exp2LeftSymbol = semanticModel.GetSymbolInfo(exp2AndNestings[i].Left).Symbol;
-                var exp2RightSymbol = semanticModel.GetSymbolInfo(exp2AndNestings[i].Right).Symbol;
-
-                if (exp1LeftLiteral != null && exp2LeftLiteral != null)
-                {
-                    if (!(exp1LeftLiteral.Token.Value.Equals(exp2LeftLiteral.Token.Value)))
-                    {
-                        return false;
-                    }
-                    if (!(exp1AndNestings[i].OperatorToken.RawKind == exp2AndNestings[i].OperatorToken.RawKind &&
-                            (exp1RightSymbol.Equals(exp2RightSymbol))))
-                    {
-                        return false;
-                    }
-                }
-                
-                if (exp1RightLiteral != null && exp2RightLiteral != null)
-                {
-                    if (!exp1RightLiteral.Token.Value.Equals(exp2RightLiteral.Token.Value))
-                    {
-                        return false;
-                    }
-                    if (!(exp1AndNestings[i].OperatorToken.RawKind == exp2AndNestings[i].OperatorToken.RawKind &&
-                        (exp1LeftSymbol.Equals(exp2LeftSymbol))))
-                    {
-                        return false;
-                    }
-                }
-
-                if (exp1LeftLiteral == null && exp2LeftLiteral != null) return false;
-                if (exp1LeftLiteral != null && exp2LeftLiteral == null) return false;
-                if (exp1RightLiteral == null && exp2RightLiteral != null) return false;
-                if (exp1RightLiteral != null && exp2RightLiteral == null) return false;
-
-                if (exp1LeftSymbol != null && exp1RightSymbol != null && exp2LeftSymbol != null &&
-                    exp2RightSymbol != null)
-                {
-
-                    if (!(exp1AndNestings[i].OperatorToken.RawKind == exp2AndNestings[i].OperatorToken.RawKind &&
-                          ((exp1LeftSymbol.Equals(exp2LeftSymbol) && exp1RightSymbol.Equals(exp2RightSymbol)))))
-                    {
-                        return false;
-                    }
-                }
+                if (!IsOperatorEqual(exp1AndNestings[i], exp2AndNestings[i])) return false;
+                if (!AreContainedLiteralExpressionsEqual(exp1AndNestings[i], exp2AndNestings[i])) return false;
+                if (!AreContainedSymbolsEqual(exp1AndNestings[i], exp2AndNestings[i], semanticModel)) return false;
             }
+            return true;
+        }
+
+        private bool IsOperatorEqual(BinaryExpressionSyntax exp1, BinaryExpressionSyntax exp2)
+        {
+            return exp1.OperatorToken.RawKind == exp2.OperatorToken.RawKind;
+        }
+
+        private bool AreContainedLiteralExpressionsEqual(BinaryExpressionSyntax exp1, BinaryExpressionSyntax exp2)
+        {
+            var exp1LeftLiteral = exp1.Left as LiteralExpressionSyntax;
+            var exp1RightLiteral = exp1.Right as LiteralExpressionSyntax;
+            var exp2LeftLiteral = exp2.Left as LiteralExpressionSyntax;
+            var exp2RightLiteral = exp2.Right as LiteralExpressionSyntax;
+
+            if (exp1LeftLiteral != null && exp2LeftLiteral != null)
+                if (!(exp1LeftLiteral.Token.Value.Equals(exp2LeftLiteral.Token.Value)))
+                    return false;
+            if (exp1RightLiteral != null && exp2RightLiteral != null)
+                if (!exp1RightLiteral.Token.Value.Equals(exp2RightLiteral.Token.Value))
+                    return false;
+            return AreNullValuesDistributedSymmetrically(exp1LeftLiteral, exp1RightLiteral, exp2LeftLiteral, exp2RightLiteral);
+        }
+
+        private bool AreContainedSymbolsEqual(BinaryExpressionSyntax exp1, BinaryExpressionSyntax exp2,
+            SemanticModel semanticModel)
+        {
+            var exp1LeftSymbol = semanticModel.GetSymbolInfo(exp1.Left).Symbol;
+            var exp1RightSymbol = semanticModel.GetSymbolInfo(exp1.Right).Symbol;
+            var exp2LeftSymbol = semanticModel.GetSymbolInfo(exp2.Left).Symbol;
+            var exp2RightSymbol = semanticModel.GetSymbolInfo(exp2.Right).Symbol;
+
+            if (exp1LeftSymbol != null && exp2LeftSymbol != null)
+                if (!(exp1LeftSymbol.Equals(exp2LeftSymbol))) return false;
+            if (exp1RightSymbol != null && exp2RightSymbol != null)
+                if (!(exp1RightSymbol.Equals(exp2RightSymbol))) return false;
+            return AreNullValuesDistributedSymmetrically(exp1LeftSymbol, exp1RightSymbol, exp2LeftSymbol, exp2RightSymbol);
+        }
+
+        private bool AreNullValuesDistributedSymmetrically(Object exp1Left, Object exp1Right, Object exp2Left,
+            Object exp2Right)
+        {
+            if (exp1Left == null && exp2Left != null) return false;
+            if (exp1Left != null && exp2Left == null) return false;
+            if (exp1Right == null && exp2Right != null) return false;
+            if (exp1Right != null && exp2Right == null) return false;
             return true;
         }
 
