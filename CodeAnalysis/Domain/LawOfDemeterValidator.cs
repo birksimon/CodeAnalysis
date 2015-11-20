@@ -55,7 +55,7 @@ namespace CodeAnalysis.Domain
             if (_documentWalker.TryGetContainingNodeOfType(invocation, out containingMethod))
             {
                 var parameters = containingMethod.ParameterList.Parameters;
-                return IsSymbolInvocationOfNodes(parameters, invocationSymbol, model);
+                return _documentWalker.IsSymbolInvocationOfNodes(parameters, invocationSymbol, model);
             }
             return false;
         }
@@ -67,7 +67,7 @@ namespace CodeAnalysis.Domain
             if (containingType == null)
                 return false;
             var members = containingType.Members;
-            return IsSymbolInvocationOfNodes(members, invocationSymbol, model);
+            return _documentWalker.IsSymbolInvocationOfNodes(members, invocationSymbol, model);
         }
 
         private bool IsInvocationOfInMethodCreatedObject(InvocationExpressionSyntax invocation, SemanticModel model)
@@ -77,7 +77,7 @@ namespace CodeAnalysis.Domain
             if (_documentWalker.TryGetContainingNodeOfType(invocation, out containingMethod))
             {
                 var objectCreations = containingMethod.DescendantNodes().OfType<LocalDeclarationStatementSyntax>();
-                return IsSymbolInvocationOfNodes(objectCreations, invocationSymbol, model);
+                return _documentWalker.IsSymbolInvocationOfNodes(objectCreations, invocationSymbol, model);
             }
             return false;
         }
@@ -92,36 +92,7 @@ namespace CodeAnalysis.Domain
         {
             var invocationSymbol = model.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
             return invocationSymbol != null && invocationSymbol.IsExtensionMethod;
-        }
-
-        public static bool IsSymbolInvocationOfNodes(IEnumerable<SyntaxNode> nodes, ISymbol invocationSymbol, SemanticModel model )
-        {
-            return 
-                (from node in nodes
-                 from identifier in node.DescendantNodes().Where((
-                 t => t is IdentifierNameSyntax || t is PredefinedTypeSyntax || t is GenericNameSyntax || t is ArrayTypeSyntax))
-                 select FindSymbolInfo(model, identifier) into typeSymbol
-                 where typeSymbol != null
-                 from member in CollectAllMembers(typeSymbol)
-                 select member).Any(member => member.Name.Equals(invocationSymbol.Name));
-        }
-
-        private static ITypeSymbol FindSymbolInfo(SemanticModel model, SyntaxNode parameter)
-        {
-            return model.GetSymbolInfo(parameter).Symbol as ITypeSymbol;
-        }
-
-        private static  List<ISymbol> CollectAllMembers(ITypeSymbol symbolInfo)
-        {
-            var members = symbolInfo.GetMembers().ToList();
-            var parent = symbolInfo.BaseType;
-            while (parent != null)
-            {
-                members.AddRange(parent.GetMembers());
-                parent = parent.BaseType;
-            }
-            return members;
-        }      
+        }     
     }
 }
  

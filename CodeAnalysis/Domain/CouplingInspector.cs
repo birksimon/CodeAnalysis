@@ -55,8 +55,7 @@ namespace CodeAnalysis.Domain
                 throw new NoNamedTypeException(containingType);
             nameSpace = typeSymbol.ContainingNamespace.Name;
             var members = containingType.Members;
-
-            return LawOfDemeterValidator.IsSymbolInvocationOfNodes(members, invocationSymbol, model);
+            return _documentWalker.IsSymbolInvocationOfNodes(members, invocationSymbol, model);
         }
     }
 }

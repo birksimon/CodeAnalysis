@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
@@ -35,19 +34,7 @@ namespace CodeAnalysis.Domain
             }
             throw new NodeDoesNotExistException($"Node {node} does not have a parent of type {typeof(TNode)}.");
         }
-
-        public TNode GetContainingNodeOfType<TNode> (SyntaxToken token) where TNode:CSharpSyntaxNode
-        {
-            var parent = token.Parent;
-            while (parent != null)
-            {
-                if (parent is TNode)
-                    return (TNode)parent;
-                parent = parent.Parent;
-            }
-            throw new NodeDoesNotExistException($"Node {token} does not have a parent of type {typeof(TNode)}.");
-        }
-
+        
         public bool TryGetContainingNodeOfType<TNode>(SyntaxNode node, out TNode containingNode) where TNode : CSharpSyntaxNode
         {
             var parent = node.Parent;
@@ -64,32 +51,33 @@ namespace CodeAnalysis.Domain
             return false;
         }
 
-        public bool TryGetContainingNodeOfType<TNode>(SyntaxToken token, out TNode containingNode) where TNode : CSharpSyntaxNode
+        public bool IsSymbolInvocationOfNodes(IEnumerable<SyntaxNode> nodes, ISymbol invocationSymbol, SemanticModel model)
         {
-            var parent = token.Parent;
-            while (parent != null)
-            {
-                if (parent is TNode)
-                {
-                    containingNode = (TNode)parent;
-                    return true;
-                }
-                parent = parent.Parent;
-            }
-            containingNode = null;
-            return false;
+            return
+                (from node in nodes
+                 from identifier in node.DescendantNodes().Where((
+                 t => t is IdentifierNameSyntax || t is PredefinedTypeSyntax || t is GenericNameSyntax || t is ArrayTypeSyntax))
+                 select FindSymbolInfo(model, identifier) into typeSymbol
+                 where typeSymbol != null
+                 from member in CollectAllMembers(typeSymbol)
+                 select member).Any(member => member.Name.Equals(invocationSymbol.Name));
         }
 
-        public bool HasContainingNodeOfType<TNode>(SyntaxNode node) where TNode : CSharpSyntaxNode
+        private ITypeSymbol FindSymbolInfo(SemanticModel model, SyntaxNode parameter)
         {
-            var parent = node.Parent;
+            return model.GetSymbolInfo(parameter).Symbol as ITypeSymbol;
+        }
+
+        private List<ISymbol> CollectAllMembers(ITypeSymbol symbolInfo)
+        {
+            var members = symbolInfo.GetMembers().ToList();
+            var parent = symbolInfo.BaseType;
             while (parent != null)
             {
-                if (parent is TNode)
-                    return true;
-                parent = parent.Parent;
+                members.AddRange(parent.GetMembers());
+                parent = parent.BaseType;
             }
-            return false;
+            return members;
         }
 
         public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<SyntaxNode> nodes, RecommendationType recommendation)
@@ -136,16 +124,13 @@ namespace CodeAnalysis.Domain
         {
             var tree = document.GetSyntaxTreeAsync().Result;
 
-            foreach (var nodePair in syntaxNodes)
+            return syntaxNodes.Select(nodePair => new Occurence()
             {
-                yield return new Occurence()
-                {
-                    File = document.FilePath,
-                    Line = tree.GetLineSpan(nodePair.Key.FullSpan).ToString().Split(' ').Last() + " & " +
-                           tree.GetLineSpan(nodePair.Value.FullSpan).ToString().Split(' ').Last(),
-                    CodeFragment = nodePair.Key + " & " +  nodePair.Value
-                };
-            }
+                File = document.FilePath,
+                Line = tree.GetLineSpan(nodePair.Key.FullSpan).ToString().Split(' ').Last() + " & " +
+                       tree.GetLineSpan(nodePair.Value.FullSpan).ToString().Split(' ').Last(),
+                CodeFragment = nodePair.Key + " & " +  nodePair.Value
+            });
         }
     }
 }
