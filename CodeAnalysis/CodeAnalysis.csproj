@@ -94,12 +94,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataClasses\ClassCouplingMetrics.cs" />
     <Compile Include="DataClasses\Occurence.cs" />
     <Compile Include="DataClasses\OptimizationRecomendation.cs" />
     <Compile Include="Domain\CommentInspector.cs" />
+    <Compile Include="Domain\CouplingInspector.cs" />
     <Compile Include="Domain\DocumentWalker.cs" />
     <Compile Include="Domain\ErrorHandlingInspector.cs" />
     <Compile Include="Domain\Exceptions\NodeDoesNotExistException.cs" />
+    <Compile Include="Domain\Exceptions\NoNamedTypeException.cs" />
     <Compile Include="Domain\FunctionInspector.cs" />
     <Compile Include="Domain\ICodeAnalyzer.cs" />
     <Compile Include="Domain\InheritanceInspector.cs" />
@@ -128,6 +131,7 @@
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

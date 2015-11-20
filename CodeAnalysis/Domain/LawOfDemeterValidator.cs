@@ -94,7 +94,7 @@ namespace CodeAnalysis.Domain
             return invocationSymbol != null && invocationSymbol.IsExtensionMethod;
         }
 
-        private bool IsSymbolInvocationOfNodes(IEnumerable<SyntaxNode> nodes, ISymbol invocationSymbol, SemanticModel model )
+        public static bool IsSymbolInvocationOfNodes(IEnumerable<SyntaxNode> nodes, ISymbol invocationSymbol, SemanticModel model )
         {
             return 
                 (from node in nodes
@@ -106,12 +106,12 @@ namespace CodeAnalysis.Domain
                  select member).Any(member => member.Name.Equals(invocationSymbol.Name));
         }
 
-        private ITypeSymbol FindSymbolInfo(SemanticModel model, SyntaxNode parameter)
+        private static ITypeSymbol FindSymbolInfo(SemanticModel model, SyntaxNode parameter)
         {
             return model.GetSymbolInfo(parameter).Symbol as ITypeSymbol;
         }
 
-        private List<ISymbol> CollectAllMembers(ITypeSymbol symbolInfo)
+        private static  List<ISymbol> CollectAllMembers(ITypeSymbol symbolInfo)
         {
             var members = symbolInfo.GetMembers().ToList();
             var parent = symbolInfo.BaseType;

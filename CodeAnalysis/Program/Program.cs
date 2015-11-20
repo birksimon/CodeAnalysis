@@ -32,8 +32,12 @@ namespace CodeAnalysis.Program
             var analyzers = GetAllAnalyzers().ToList();
             var results = new List<OptimizationRecomendation>();
 
+
+            var ci = new CouplingInspector();
+
             foreach (var solution in filteredSolutions)
             {
+                ci.Analyze(solution);
                 foreach (var analyzer in analyzers)
                 {
                     results.AddRange(analyzer.Analyze(solution));
