@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CodeAnalysis.Output;
@@ -52,7 +53,7 @@ namespace CodeAnalysis.DataClasses
             builder.Append(Class).Append(PrintConstants.Semicolon);
             builder.Append(TotalAmountCalls).Append(PrintConstants.Semicolon);
             builder.Append(TotalInternCalls).Append(PrintConstants.Semicolon);
-            builder.Append(TotalExternCalls).Append("\n");
+            builder.Append(TotalExternCalls).Append(Environment.NewLine);
             return builder.ToString();
         }
     }

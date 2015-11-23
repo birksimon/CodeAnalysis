@@ -19,8 +19,7 @@ namespace CodeAnalysis.Domain
             return 
                 (from document in documents
                  let numberSeries = GetNamesConsistingOfNumberSeries(document).ToList()
-                 select _documentWalker.CreateRecommendations(document, numberSeries,RecommendationType.VariableNameIsNumberSeries))
-                 .Cast<ICSVPrintable>();
+                 select _documentWalker.CreateRecommendations(document, numberSeries,RecommendationType.VariableNameIsNumberSeries));
         }
 
         private IEnumerable<VariableDeclaratorSyntax> GetNamesConsistingOfNumberSeries(Document document)

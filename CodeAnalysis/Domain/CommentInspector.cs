@@ -6,17 +6,15 @@ using CodeAnalysis.Enums;
 using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using static CodeAnalysis.Domain.RawKindConstants;
 
 namespace CodeAnalysis.Domain
 {
     internal class CommentInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
-        private const int SingleLineCommentTrivia = 8541;
-        private const int DocumentationCommentTriva = 8544;
         private const int SufficientBlockSize = 10;
-        private const int PrivateToken = 8344;
-
+        
         public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
@@ -40,7 +38,7 @@ namespace CodeAnalysis.Domain
             var modifiersWithDocumentation = allPrivateAccessModifiers.Where(token => token.HasLeadingTrivia);
             var privateDocumentation = from tokens in modifiersWithDocumentation 
                                        from trivia in tokens.LeadingTrivia
-                                       where trivia.RawKind == DocumentationCommentTriva
+                                       where trivia.RawKind == SingleLineDocumentationTrivia
                                        select trivia;
             return privateDocumentation;
         }

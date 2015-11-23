@@ -7,7 +7,7 @@ using CodeAnalysis.Output;
 
 namespace CodeAnalysis.DataClasses
 {
-    internal struct OptimizationRecomendation : ICSVPrintable
+    internal class OptimizationRecomendation : ICSVPrintable
     {
         public static readonly Dictionary<RecommendationType, string> RecommendationTypeToMessageMapping
             = new Dictionary<RecommendationType, string>()

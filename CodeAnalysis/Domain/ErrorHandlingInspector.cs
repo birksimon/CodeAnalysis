@@ -5,15 +5,14 @@ using CodeAnalysis.Enums;
 using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static CodeAnalysis.Domain.RawKindConstants;
 
 namespace CodeAnalysis.Domain
 {
     class ErrorHandlingInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
-        private const int NullLiteralExpresision = 8754;
-        private const int NumericLiteralExpression = 8749;
-        private const int UnaryMinusExpression = 8731;
+
 
         public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {

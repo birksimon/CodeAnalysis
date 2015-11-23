@@ -4,16 +4,14 @@ using CodeAnalysis.Enums;
 using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static CodeAnalysis.Domain.RawKindConstants;
 
 namespace CodeAnalysis.Domain
 {
     class LimitConditionInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
-        private const int MinusToken = 8202;
-        private const int PlusToken = 8539;
-        private const int AsteriskToken = 8199;
-        private const int SlashToken = 8221;
+        
         public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
@@ -22,8 +20,7 @@ namespace CodeAnalysis.Domain
                 let semanticModel = document.GetSemanticModelAsync().Result
                 let arithmeticOperationOnVariables = FindArithmeticOperationsOnVariables(document)
                 let duplicates = FindReoccuringOperations(arithmeticOperationOnVariables, semanticModel)
-                select _documentWalker.CreateRecommendations(document, duplicates, RecommendationType.LimitCondition))
-                .Cast<ICSVPrintable>();
+                select _documentWalker.CreateRecommendations(document, duplicates, RecommendationType.LimitCondition));
         }
 
         private IEnumerable<BinaryExpressionSyntax> FindArithmeticOperationsOnVariables(Document document)

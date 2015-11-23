@@ -7,20 +7,13 @@ using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.Environment;
+using static CodeAnalysis.Domain.RawKindConstants;
 
 namespace CodeAnalysis.Domain
 {
     internal class MetricCalculator : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
-        private const int EndOfLineTrivia = 8539;
-        private const int MultiLineTrivia = 8542;
-        private const int OpenBraceToken = 8205;
-        private const int CloseBraceToken = 8206;
-        private const int CoalesceExpression = 8688;
-        private const int LogicalOrExpression = 8675;
-        private const int LogicalAndExpression = 8676;
-        private const int SingleLineDocumentationTrivia = 8544;
         private const string DocumentationCommentSeparator = "///";
 
         public IEnumerable<ICSVPrintable> Analyze(Solution solution)

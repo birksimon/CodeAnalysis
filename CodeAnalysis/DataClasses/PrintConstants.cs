@@ -1,8 +1,6 @@
-﻿using Microsoft.CodeAnalysis.VisualBasic.Syntax;
-
-namespace CodeAnalysis.DataClasses
+﻿namespace CodeAnalysis.DataClasses
 {
-    class PrintConstants
+    struct PrintConstants
     {
         public const string Semicolon = ";";
     }

@@ -4,7 +4,7 @@ using CodeAnalysis.Output;
 
 namespace CodeAnalysis.DataClasses
 {
-    public struct MetricCollection : ICSVPrintable
+    public class MetricCollection : ICSVPrintable
     {
         public readonly string Solution;
         public int TotalNumberOfClasses { get; set; }
