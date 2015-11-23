@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CodeAnalysis.Enums;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using CodeAnalysis.Output;
 
 namespace CodeAnalysis.DataClasses
 {
-    internal struct OptimizationRecomendation
+    internal struct OptimizationRecomendation : ICSVPrintable
     {
         public static readonly Dictionary<RecommendationType, string> RecommendationTypeToMessageMapping
             = new Dictionary<RecommendationType, string>()
@@ -27,7 +27,6 @@ namespace CodeAnalysis.DataClasses
                 { RecommendationType.LimitCondition, "Do not repeatly use the same limit condition. Encapsulate it in a new variable instead." }
             };
 
-        private const char Semicolon = ';';
         public IEnumerable<Occurence> Occurrences { get; set; }
         public RecommendationType RecommendationType { get; set; }
 
@@ -37,31 +36,31 @@ namespace CodeAnalysis.DataClasses
             Occurrences = occurences;
         }
         
-        public string ToCSVString()
+       public string GetCSVString()
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
 
             foreach (var occurence in Occurrences)
             {
-                builder.Append(RecommendationTypeToMessageMapping[RecommendationType]).Append(Semicolon);
-                builder.Append(@"" + occurence.CodeFragment 
-                    .Replace(Environment.NewLine, "")
-                    .Replace("\n", "")
-                    .Replace("\r", "")
-                    .Replace("\r\n", "")
-                    .Replace("\n\r", "")
-                    .Replace(";", " ")
-                               + "")
-                    .Append(Semicolon);
-                builder.Append(occurence.Line).Append(Semicolon);
+                builder.Append(RecommendationTypeToMessageMapping[RecommendationType]).Append(PrintConstants.Semicolon);
+                builder.Append(Formatter.RemoveNewLines(occurence.CodeFragment)).Append(PrintConstants.Semicolon);
+                builder.Append(occurence.Line).Append(PrintConstants.Semicolon);
                 builder.Append(occurence.File).Append(Environment.NewLine);
             }
             return builder.ToString();
         }
-
-        public bool HasOccurences()
+        public string GetCSVHeader()
         {
-            return Occurrences.Any();
+            return "Recommendation;Codefragment;Line;File\n";
+        }
+        public bool IsEmpty()
+        {
+            return !Occurrences.Any();
+        }
+
+        public string GetFileName()
+        {
+            return "/OptimizationRecommendations.csv";
         }
     }
 }

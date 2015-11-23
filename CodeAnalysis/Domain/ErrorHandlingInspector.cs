@@ -2,6 +2,7 @@
 using System.Linq;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
+using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -14,7 +15,7 @@ namespace CodeAnalysis.Domain
         private const int NumericLiteralExpression = 8749;
         private const int UnaryMinusExpression = 8731;
 
-        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
+        public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
             foreach (var document in documents)

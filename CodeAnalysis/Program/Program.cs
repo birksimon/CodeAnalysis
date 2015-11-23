@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using CodeAnalysis.DataClasses;
 using CodeAnalysis.Domain;
 using CodeAnalysis.Filesystem;
 using CodeAnalysis.Output;
@@ -15,29 +14,24 @@ namespace CodeAnalysis.Program
         private static void Main(string[] args)
         {
             var directory = args[0];
-            var csvWriter = new CSVWriter();
             var stopwatch = new Stopwatch();
 
             stopwatch.Start();
-            var analysisResult = RunAnalysis(directory);
-            csvWriter.WriteAnalysisResultToFile(directory, analysisResult);
+            var analysisResults = RunAnalysis(directory);
+            PrintResults(analysisResults, directory);
             stopwatch.Stop();          
         }
 
-        private static IEnumerable<OptimizationRecomendation> RunAnalysis(string directory)
+        private static IEnumerable<ICSVPrintable> RunAnalysis(string directory)
         {
             var solutionPaths = GetSolutionsFilePaths(directory);
             var unfiltereSolutions = GetVisualStudioSolutions(solutionPaths);
             var filteredSolutions = FilterSolutions(unfiltereSolutions);
             var analyzers = GetAllAnalyzers().ToList();
-            var results = new List<OptimizationRecomendation>();
-
-
-            var ci = new CouplingInspector();
+            var results = new List<ICSVPrintable>();
 
             foreach (var solution in filteredSolutions)
             {
-                ci.Analyze(solution);
                 foreach (var analyzer in analyzers)
                 {
                     results.AddRange(analyzer.Analyze(solution));
@@ -78,6 +72,15 @@ namespace CodeAnalysis.Program
                 .SelectMany(s => s.GetTypes())
                 .Where(p => type.IsAssignableFrom(p) && !p.IsInterface);
             return types.Select(t => (ICodeAnalyzer) Activator.CreateInstance(t));
+        }
+
+        private static void PrintResults(IEnumerable<ICSVPrintable> results, string directory)
+        {
+            var csvWriter = new CSVWriter();
+            foreach (var result in results)
+            {
+                csvWriter.WriteAnalysisResultToFile(directory, result);
+            }
         }
     }
 }

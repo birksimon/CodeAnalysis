@@ -2,17 +2,18 @@
 using System.Linq;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Domain.Exceptions;
+using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeAnalysis.Domain
 {
-    class CouplingInspector
+    class CouplingInspector : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
-        public void Analyze(Solution solution)
+        public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
-            var result = AnalyzeCoupling(solution).ToList();
+            return  AnalyzeCoupling(solution).ToList();
         }
 
         private IEnumerable<ClassCouplingMetrics> AnalyzeCoupling(Solution solution)
@@ -25,7 +26,7 @@ namespace CodeAnalysis.Domain
 
                 foreach (var type in typeDeclarations)
                 {
-                    var classCouplingMetrics = new ClassCouplingMetrics(type);
+                    var classCouplingMetrics = new ClassCouplingMetrics(type.Identifier.Text);
                     var invocations = type.DescendantNodes().OfType<InvocationExpressionSyntax>();
                     foreach (var invocation in invocations)
                     {
@@ -46,7 +47,7 @@ namespace CodeAnalysis.Domain
             }
         }
 
-        private bool IsInternal(InvocationExpressionSyntax invocation, SemanticModel model, out string nameSpace)
+        private bool IsInternal(SyntaxNode invocation, SemanticModel model, out string nameSpace)
         {
             var containingType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(invocation);
             var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;

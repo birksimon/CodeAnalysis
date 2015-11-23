@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
+using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -11,15 +11,16 @@ namespace CodeAnalysis.Domain
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
 
-        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
+        public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
-            return documents.Select(GetLODViolations);
+            var violations = documents.Select(GetLODViolations).Where(v => !v.IsEmpty());
+            return violations;
         }
 
         // TODO Was ist mit List[0].Foo() -> theoretisch Verstoß, aber wohl nicht sinnvoll
         // TODO Was ist mit ...ToString().Split('').... -> Grunddatentypen; Listen, LINQ OK
-        private OptimizationRecomendation GetLODViolations(Document document)
+        private ICSVPrintable GetLODViolations(Document document)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
             var methodInvocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(document).ToList();            
@@ -33,8 +34,8 @@ namespace CodeAnalysis.Domain
                  where !IsStaticInvocation(methodInvocation, semanticModel)
                  where !IsExtensionMethodInvocation(methodInvocation, semanticModel)
                  select methodInvocation).ToList();
-
-            return _documentWalker.CreateRecommendations(document, lodViolations, RecommendationType.LODViolation);
+            var recommendations = _documentWalker.CreateRecommendations(document, lodViolations, RecommendationType.LODViolation);
+            return recommendations;
         }
         
         private bool IsInvocationOfContainingType(InvocationExpressionSyntax invocation, SemanticModel model)

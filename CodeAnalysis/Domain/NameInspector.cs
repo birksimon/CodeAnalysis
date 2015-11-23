@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
+using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -12,14 +12,15 @@ namespace CodeAnalysis.Domain
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
 
-        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
+        public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
+
             return 
-                from document in documents
-                let numberSeries = GetNamesConsistingOfNumberSeries(document).ToList()
-                where numberSeries.Any()
-                select _documentWalker.CreateRecommendations(document, numberSeries, RecommendationType.VariableNameIsNumberSeries);
+                (from document in documents
+                 let numberSeries = GetNamesConsistingOfNumberSeries(document).ToList()
+                 select _documentWalker.CreateRecommendations(document, numberSeries,RecommendationType.VariableNameIsNumberSeries))
+                 .Cast<ICSVPrintable>();
         }
 
         private IEnumerable<VariableDeclaratorSyntax> GetNamesConsistingOfNumberSeries(Document document)
@@ -34,7 +35,6 @@ namespace CodeAnalysis.Domain
                                  where Regex.IsMatch(variable.Identifier.Value.ToString(), numberSeriesRegex)
                                  select variable);
             }
-
             return nsNames;
         }
     }

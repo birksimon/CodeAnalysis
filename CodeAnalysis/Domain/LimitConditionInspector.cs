@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
+using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -15,17 +14,16 @@ namespace CodeAnalysis.Domain
         private const int PlusToken = 8539;
         private const int AsteriskToken = 8199;
         private const int SlashToken = 8221;
-        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
+        public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
-            
-            foreach (var document in documents)
-            {
-                var semanticModel = document.GetSemanticModelAsync().Result;
-                var arithmeticOperationOnVariables = FindArithmeticOperationsOnVariables(document);
-                var duplicates = FindReoccuringOperations(arithmeticOperationOnVariables, semanticModel);
-                yield return _documentWalker.CreateRecommendations(document, duplicates, RecommendationType.LimitCondition);
-            }
+            return (
+                from document in documents
+                let semanticModel = document.GetSemanticModelAsync().Result
+                let arithmeticOperationOnVariables = FindArithmeticOperationsOnVariables(document)
+                let duplicates = FindReoccuringOperations(arithmeticOperationOnVariables, semanticModel)
+                select _documentWalker.CreateRecommendations(document, duplicates, RecommendationType.LimitCondition))
+                .Cast<ICSVPrintable>();
         }
 
         private IEnumerable<BinaryExpressionSyntax> FindArithmeticOperationsOnVariables(Document document)
@@ -117,25 +115,14 @@ namespace CodeAnalysis.Domain
             return AreNullValuesDistributedSymmetrically(exp1LeftSymbol, exp1RightSymbol, exp2LeftSymbol, exp2RightSymbol);
         }
 
-        private bool AreNullValuesDistributedSymmetrically(Object exp1Left, Object exp1Right, Object exp2Left,
-            Object exp2Right)
+        private bool AreNullValuesDistributedSymmetrically(object exp1Left, object exp1Right, object exp2Left,
+            object exp2Right)
         {
             if (exp1Left == null && exp2Left != null) return false;
             if (exp1Left != null && exp2Left == null) return false;
             if (exp1Right == null && exp2Right != null) return false;
             if (exp1Right != null && exp2Right == null) return false;
             return true;
-        }
-
-        private void TestFuncc()
-        {
-            var X = 10;
-            var Y = 20;
-            var Width = 15;
-            var Height = 25;
-
-            var a = X + (Width/2) - (Width/2);
-            var b = Y + (Height/2) - (Height/2);
         }
     }
 }

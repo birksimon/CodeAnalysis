@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Text;
+using CodeAnalysis.Output;
 
 namespace CodeAnalysis.DataClasses
 {
-    class ClassCouplingMetrics
+    class ClassCouplingMetrics : ICSVPrintable
     {
         public string Class { get; set; }
         public int TotalAmountCalls { get; set; }
@@ -12,9 +13,9 @@ namespace CodeAnalysis.DataClasses
         public int TotalExternCalls { get; set; }
         private readonly Dictionary<string, int> _externCalls = new Dictionary<string, int>();
 
-        public ClassCouplingMetrics(BaseTypeDeclarationSyntax type)
+        public ClassCouplingMetrics(string type)
         {
-            Class = type.Identifier.Text;
+            Class = type;
         }
 
         public void AddExternCall(string calledNamespace)
@@ -32,6 +33,27 @@ namespace CodeAnalysis.DataClasses
         public List<KeyValuePair<string, int>> GetExternCalls()
         {
             return _externCalls.ToList();
+        }
+        public string GetCSVHeader()
+        {
+            return "Class;Calls Total;Internal Calls;External Calls\n";
+        }
+        public bool IsEmpty()
+        {
+            return string.IsNullOrEmpty(Class);
+        }
+        public string GetFileName()
+        {
+            return "/ClassCoupling.csv";
+        }
+        public string GetCSVString()
+        {
+            var builder = new StringBuilder();
+            builder.Append(Class).Append(PrintConstants.Semicolon);
+            builder.Append(TotalAmountCalls).Append(PrintConstants.Semicolon);
+            builder.Append(TotalInternCalls).Append(PrintConstants.Semicolon);
+            builder.Append(TotalExternCalls).Append("\n");
+            return builder.ToString();
         }
     }
 }

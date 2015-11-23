@@ -82,7 +82,7 @@ namespace CodeAnalysis.Domain
 
         public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<SyntaxNode> nodes, RecommendationType recommendation)
         {
-            var occurences = GenerateRuleViolationOccurences(nodes, document);
+            var occurences = GenerateRuleViolationOccurences(nodes, document).ToList();
             return new OptimizationRecomendation(recommendation, occurences);
         }
 
@@ -101,12 +101,26 @@ namespace CodeAnalysis.Domain
         private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<SyntaxNode> syntaxNode, Document document)
         {
             var tree = document.GetSyntaxTreeAsync().Result;
+
+            foreach (var node in syntaxNode)
+            {
+                var occ = new Occurence()
+                {
+                    File = document.FilePath,
+                    Line = tree.GetLineSpan(node.FullSpan).ToString().Split(' ').Last(),
+                    CodeFragment = node.ToString()
+                };
+                yield return occ;
+            }
+
+            /*
             return syntaxNode.Select(declaration => new Occurence()
             {
                 File = document.FilePath,
                 Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
                 CodeFragment = declaration.ToString()
             });
+            */
         }
 
         private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<SyntaxTrivia> syntaxTrivia, Document document)

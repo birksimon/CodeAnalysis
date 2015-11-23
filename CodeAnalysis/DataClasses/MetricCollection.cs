@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Text;
+using CodeAnalysis.Output;
 
 namespace CodeAnalysis.DataClasses
 {
-    public struct MetricCollection
+    public struct MetricCollection : ICSVPrintable
     {
         public readonly string Solution;
         public int TotalNumberOfClasses { get; set; }
@@ -11,7 +12,6 @@ namespace CodeAnalysis.DataClasses
         public int TotalNumberOfNamespaces { get; set; }
         public int CyclomaticComplexity { get; set; }
         public int TotalLinesOfCode { get; set; }
-        private const char Semicolon = ';';
         public MetricCollection(string solution)
         {
             Solution = solution;
@@ -21,27 +21,33 @@ namespace CodeAnalysis.DataClasses
             CyclomaticComplexity = 0;
             TotalLinesOfCode = 0;
         }
-
-        public string ToCSVString()
+        public string GetCSVString()
         {
-            StringBuilder builder = new StringBuilder();
-            builder.Append(Solution).Append(Semicolon);
-            builder.Append(TotalNumberOfClasses).Append(Semicolon);
-            builder.Append(TotalNumberOfMethods).Append(Semicolon);
-            builder.Append(CyclomaticComplexity).Append(Semicolon);
-            builder.Append(TotalNumberOfNamespaces).Append(Semicolon);
-            builder.Append(TotalLinesOfCode).Append(Semicolon);
-            builder.Append(Double.Parse(TotalNumberOfClasses.ToString()) / TotalNumberOfNamespaces).Append(Semicolon);
-            builder.Append(Double.Parse(TotalNumberOfMethods.ToString()) / TotalNumberOfClasses).Append(Semicolon);
-            builder.Append(Double.Parse(TotalLinesOfCode.ToString()) / TotalNumberOfMethods).Append(Semicolon);
+            var builder = new StringBuilder();
+            builder.Append(Solution).Append(PrintConstants.Semicolon);
+            builder.Append(TotalNumberOfClasses).Append(PrintConstants.Semicolon);
+            builder.Append(TotalNumberOfMethods).Append(PrintConstants.Semicolon);
+            builder.Append(CyclomaticComplexity).Append(PrintConstants.Semicolon);
+            builder.Append(TotalNumberOfNamespaces).Append(PrintConstants.Semicolon);
+            builder.Append(TotalLinesOfCode).Append(PrintConstants.Semicolon);
+            builder.Append(Double.Parse(TotalNumberOfClasses.ToString()) / TotalNumberOfNamespaces).Append(PrintConstants.Semicolon);
+            builder.Append(Double.Parse(TotalNumberOfMethods.ToString()) / TotalNumberOfClasses).Append(PrintConstants.Semicolon);
+            builder.Append(Double.Parse(TotalLinesOfCode.ToString()) / TotalNumberOfMethods).Append(PrintConstants.Semicolon);
             builder.Append(Double.Parse(CyclomaticComplexity.ToString()) / TotalLinesOfCode);
             return builder.ToString();
         }
-
+        public string GetCSVHeader()
+        {
+            return "Solution;NOC;NOM;CYCLO;NOP;LOC;NOC/NOP;NOM/NOC;LOC/NOM;CYCLO/LOC\n";
+        }
         public bool IsEmpty()
         {
             return (TotalNumberOfNamespaces == 0 || TotalNumberOfClasses == 0
                 || TotalLinesOfCode == 0);
+        }
+        public string GetFileName()
+        {
+            return "/MetricCollection.csv";
         }
     }
 }

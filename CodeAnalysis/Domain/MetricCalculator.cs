@@ -10,7 +10,7 @@ using static System.Environment;
 
 namespace CodeAnalysis.Domain
 {
-    internal class MetricCalculator
+    internal class MetricCalculator : ICodeAnalyzer
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         private const int EndOfLineTrivia = 8539;
@@ -23,7 +23,7 @@ namespace CodeAnalysis.Domain
         private const int SingleLineDocumentationTrivia = 8544;
         private const string DocumentationCommentSeparator = "///";
 
-        public MetricCollection AnalyzeSolution(Solution solution)
+        public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var namespaces = new HashSet<string>();
             var metricCollection = new MetricCollection(solution.FilePath.Split('\\').Last());
@@ -41,7 +41,7 @@ namespace CodeAnalysis.Domain
                 }
             }
             metricCollection.TotalNumberOfNamespaces = namespaces.Count;
-            return metricCollection;
+            return new List<ICSVPrintable> { metricCollection };
         }
 
         private int GetNumberOfClasses(Document sourceDocument)

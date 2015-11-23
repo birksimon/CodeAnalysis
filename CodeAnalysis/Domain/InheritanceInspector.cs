@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
+using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,7 +27,7 @@ namespace CodeAnalysis.Domain
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         
-        public IEnumerable<OptimizationRecomendation> Analyze(Solution solution)
+        public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution).ToList();
             var candidates = FindBaseTypeCandidates(documents);
@@ -35,9 +35,10 @@ namespace CodeAnalysis.Domain
             var dependencyViolations = FindViolations(baseTypesAndDerivees);
 
             var formattedData = FormatData(dependencyViolations);
-            return formattedData.Keys.Select
-                (key => _documentWalker.CreateRecommendations
-                    (key, formattedData[key], RecommendationType.InheritanceDependency));
+
+            return formattedData.Select
+                (keyValuePair => _documentWalker.CreateRecommendations(keyValuePair.Key, keyValuePair.Value,
+                    RecommendationType.InheritanceDependency)).Cast<ICSVPrintable>();
         }
 
         private Dictionary<Document, List<INamedTypeSymbol>> FindBaseTypeCandidates(IEnumerable<Document> documents)

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using CodeAnalysis.DataClasses;
+using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 
 namespace CodeAnalysis.Domain
 {
     interface ICodeAnalyzer
     {
-        IEnumerable<OptimizationRecomendation> Analyze(Solution solution);
+        IEnumerable<ICSVPrintable> Analyze(Solution solution);
     }
 }
