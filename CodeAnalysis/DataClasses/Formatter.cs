@@ -4,6 +4,7 @@ namespace CodeAnalysis.DataClasses
 {
     class Formatter
     {
+        private Formatter() { }
         public static string RemoveNewLines(string str)
         {
             return @"" + str.Replace(Environment.NewLine, "")

@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="DataClasses\ClassCouplingMetrics.cs" />
     <Compile Include="DataClasses\Formatter.cs" />
+    <Compile Include="Domain\RawKindConstants.cs" />
     <Compile Include="Output\ICSVPrintable.cs" />
     <Compile Include="DataClasses\Occurence.cs" />
     <Compile Include="DataClasses\OptimizationRecomendation.cs" />

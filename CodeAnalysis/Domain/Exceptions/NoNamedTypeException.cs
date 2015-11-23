@@ -9,8 +9,7 @@ namespace CodeAnalysis.Domain.Exceptions
 {
     class NoNamedTypeException : Exception
     {
-        public NoNamedTypeException(string message) : base(message) { }
-        public NoNamedTypeException(SyntaxNode node) : base(node.ToString() + " is not a named type.") { }
+        public NoNamedTypeException(string node) : base(node + " is not a named type.") { }
         public NoNamedTypeException(string message, Exception inner) : base(message, inner) { }
     }
 }

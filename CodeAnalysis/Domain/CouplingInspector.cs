@@ -53,7 +53,7 @@ namespace CodeAnalysis.Domain
             var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
             var typeSymbol = model.GetDeclaredSymbol(containingType) as INamedTypeSymbol;
             if (typeSymbol == null)
-                throw new NoNamedTypeException(containingType);
+                throw new NoNamedTypeException(containingType.ToString());
             nameSpace = typeSymbol.ContainingNamespace.Name;
             var members = containingType.Members;
             return _documentWalker.IsSymbolInvocationOfNodes(members, invocationSymbol, model);
