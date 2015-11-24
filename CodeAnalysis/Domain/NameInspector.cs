@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CodeAnalysis.Enums;
 using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static CodeAnalysis.Domain.RawKindConstants;
 
 namespace CodeAnalysis.Domain
 {
@@ -15,26 +17,35 @@ namespace CodeAnalysis.Domain
         public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
-
             return 
                 (from document in documents
-                 let numberSeries = GetNamesConsistingOfNumberSeries(document).ToList()
-                 select _documentWalker.CreateRecommendations(document, numberSeries,RecommendationType.VariableNameIsNumberSeries));
+                 let numberSeries = GetNameViolations(document).ToList()
+                 select _documentWalker.CreateRecommendations
+                 (document, numberSeries,RecommendationType.VariableNameIsNumberSeries));
         }
 
-        private IEnumerable<VariableDeclaratorSyntax> GetNamesConsistingOfNumberSeries(Document document)
+        private IEnumerable<SyntaxNode> GetNameViolations(Document document)
+        {
+            var declarations = GetDeclarations(document);
+            return declarations.Where(IsNameViolation);
+        }
+
+        private IEnumerable<SyntaxNode> GetDeclarations(Document document)
+        {
+            var declarations = new List<SyntaxNode>();
+            declarations.AddRange(_documentWalker.GetNodesFromDocument<TypeDeclarationSyntax>(document));
+            declarations.AddRange(_documentWalker.GetNodesFromDocument<VariableDeclaratorSyntax>(document));
+            declarations.AddRange(_documentWalker.GetNodesFromDocument<MethodDeclarationSyntax>(document));
+            declarations.AddRange(_documentWalker.GetNodesFromDocument<ParameterSyntax>(document));
+            return declarations;
+        }
+
+        private bool IsNameViolation(SyntaxNode declaration)
         {
             const string numberSeriesRegex = "^[a-zA-Z][0-9]{1,3}$";
-            var variableDeclarations = _documentWalker.GetNodesFromDocument<VariableDeclarationSyntax>(document);
-            var nsNames = new List<VariableDeclaratorSyntax>();
-
-            foreach (var declaration in variableDeclarations)
-            {
-                nsNames.AddRange(from variable in declaration.Variables
-                                 where Regex.IsMatch(variable.Identifier.Value.ToString(), numberSeriesRegex)
-                                 select variable);
-            }
-            return nsNames;
+            var identifier = declaration.ChildTokens().First(t => t.RawKind == IdentifierToken);
+            return Regex.IsMatch(identifier.Value.ToString(), numberSeriesRegex)
+                   || identifier.Value.ToString().Length == 1;
         }
     }
 }

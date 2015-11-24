@@ -123,6 +123,7 @@
     <Compile Include="Program\Program.cs" />
     <Compile Include="Filesystem\FileCrawler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="_TestStuff\A.cs" />
     <Compile Include="_TestStuff\Base.cs" />
     <Compile Include="_TestStuff\SubB.cs" />
   </ItemGroup>

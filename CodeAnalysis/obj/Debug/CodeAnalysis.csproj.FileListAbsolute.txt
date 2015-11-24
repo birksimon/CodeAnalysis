@@ -35,5 +35,4 @@ c:\users\sbirk\documents\visual studio 2015\Projects\CodeAnalysis\CodeAnalysis\o
 C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CsvHelper.dll
 C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CsvHelper.pdb
 C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CsvHelper.xml
-C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CodeAnalysis.exe.CodeAnalysisLog.xml
-C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\bin\Debug\CodeAnalysis.exe.lastcodeanalysissucceeded
+C:\Users\sbirk\Documents\Visual Studio 2015\Projects\CodeAnalysis\CodeAnalysis\obj\Debug\CodeAnalysis.csprojResolveAssemblyReference.cache
