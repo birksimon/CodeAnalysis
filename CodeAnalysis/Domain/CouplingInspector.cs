@@ -16,6 +16,7 @@ namespace CodeAnalysis.Domain
             return  AnalyzeCoupling(solution).ToList();
         }
 
+        // TODO Refactor
         private IEnumerable<ClassCouplingMetrics> AnalyzeCoupling(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
@@ -50,11 +51,11 @@ namespace CodeAnalysis.Domain
         private bool IsInternal(SyntaxNode invocation, SemanticModel model, out string nameSpace)
         {
             var containingType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(invocation);
-            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
             var typeSymbol = model.GetDeclaredSymbol(containingType) as INamedTypeSymbol;
-            if (typeSymbol == null)
-                throw new NoNamedTypeException(containingType.ToString());
+            if (typeSymbol == null) throw new NoNamedTypeException(containingType.ToString());
             nameSpace = typeSymbol.ContainingNamespace.Name;
+            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
+            if (invocationSymbol == null) return true;  // No Symbol -> Anonymous Method -> is Internal
             var members = containingType.Members;
             return _documentWalker.IsSymbolInvocationOfNodes(members, invocationSymbol, model);
         }
