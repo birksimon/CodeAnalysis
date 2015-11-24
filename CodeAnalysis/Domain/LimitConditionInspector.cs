@@ -92,6 +92,9 @@ namespace CodeAnalysis.Domain
                 if (!(exp1LeftLiteral.Token.Value.Equals(exp2LeftLiteral.Token.Value)))
                     return false;
             if (exp1RightLiteral != null && exp2RightLiteral != null)
+                if (exp1RightLiteral.RawKind == exp2RightLiteral.RawKind &&
+                    exp1RightLiteral.RawKind == NullLiteralExpresision)
+                    return true;
                 if (!exp1RightLiteral.Token.Value.Equals(exp2RightLiteral.Token.Value))
                     return false;
             return AreNullValuesDistributedSymmetrically(exp1LeftLiteral, exp1RightLiteral, exp2LeftLiteral, exp2RightLiteral);

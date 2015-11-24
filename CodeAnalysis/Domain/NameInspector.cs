@@ -16,17 +16,27 @@ namespace CodeAnalysis.Domain
         public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
-            return 
-                (from document in documents
-                 let numberSeries = GetNameViolations(document).ToList()
-                 select _documentWalker.CreateRecommendations
-                 (document, numberSeries,RecommendationType.VariableNameIsNumberSeries));
+            foreach (var document in documents)
+            {
+                var numberSeriesNames = GetNamesConsistingOfNumberSeries(document);
+                var singleCharNames = GetNamesConsistingOfSingleChars(document);
+                yield return _documentWalker.CreateRecommendations
+                    (document, numberSeriesNames, RecommendationType.VariableNameIsNumberSeries);
+                yield return _documentWalker.CreateRecommendations
+                 (document, singleCharNames, RecommendationType.VariableNameConsistsOfSingleChar);
+            }
         }
 
-        private IEnumerable<SyntaxNode> GetNameViolations(Document document)
+        private IEnumerable<SyntaxNode> GetNamesConsistingOfNumberSeries(Document document)
         {
             var declarations = GetDeclarations(document);
-            return declarations.Where(IsNameViolation);
+            return declarations.Where(IsNumberSeriesViolation);
+        }
+
+        private IEnumerable<SyntaxNode> GetNamesConsistingOfSingleChars(Document document)
+        {
+            var declarations = GetDeclarations(document);
+            return declarations.Where(IsSingleCharViolation);
         }
 
         private IEnumerable<SyntaxNode> GetDeclarations(Document document)
@@ -39,15 +49,22 @@ namespace CodeAnalysis.Domain
             return declarations;
         }
 
-        // TODO: Exception e is allowed
-        private bool IsNameViolation(SyntaxNode declaration)
+        // TODO: Exception e is allowed                    
+        private bool IsNumberSeriesViolation(SyntaxNode declaration)
         {
             const string numberSeriesRegex = "^[a-zA-Z][0-9]{1,3}$";
             var identifier = declaration.ChildTokens().First(t => t.RawKind == IdentifierToken);
+           // if (IsInLoop(declaration)) return false;
+           // if (IsInLamda(declaration)) return false;
+            return Regex.IsMatch(identifier.Value.ToString(), numberSeriesRegex);
+        }
+
+        private bool IsSingleCharViolation(SyntaxNode declaration)
+        {
+            var identifier = declaration.ChildTokens().First(t => t.RawKind == IdentifierToken);
             if (IsInLoop(declaration)) return false;
             if (IsInLamda(declaration)) return false;
-            return Regex.IsMatch(identifier.Value.ToString(), numberSeriesRegex)
-                   || identifier.Value.ToString().Length == 1;
+            return identifier.Value.ToString().Length == 1;
         }
 
         private bool IsInLoop(SyntaxNode declaration)

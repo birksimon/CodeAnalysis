@@ -5,6 +5,7 @@
         FunctionWithTooManyArguments,
         FunctionIsTooBig,
         VariableNameIsNumberSeries,
+        VariableNameConsistsOfSingleChar,
         FlagArgument,
         CommentHeadline,
         CodeInComment,
