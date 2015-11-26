@@ -126,15 +126,6 @@ namespace CodeAnalysis.Domain
                 };
                 yield return occ;
             }
-
-            /*
-            return syntaxNode.Select(declaration => new Occurence()
-            {
-                File = document.FilePath,
-                Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
-                CodeFragment = declaration.ToString()
-            });
-            */
         }
 
         private IEnumerable<Occurence> GenerateRuleViolationOccurences(IEnumerable<SyntaxTrivia> syntaxTrivia, Document document)
