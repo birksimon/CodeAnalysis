@@ -94,6 +94,7 @@ namespace CodeAnalysis.Domain
             return members;
         }
 
+        //TODO Refactor (DRY!!!)
         public OptimizationRecomendation CreateRecommendations(Document document, IEnumerable<SyntaxNode> nodes, RecommendationType recommendation)
         {
             var occurences = GenerateRuleViolationOccurences(nodes, document).ToList();
@@ -122,7 +123,7 @@ namespace CodeAnalysis.Domain
                 {
                     File = document.FilePath,
                     Line = tree.GetLineSpan(node.FullSpan).ToString().Split(' ').Last(),
-                    CodeFragment = node.ToString()
+                    CodeFragment = node.ToString().Length > 100 ? node.ToString().Substring(0,100) : node.ToString()
                 };
                 yield return occ;
             }
@@ -135,7 +136,7 @@ namespace CodeAnalysis.Domain
             {
                 File = document.FilePath,
                 Line = tree.GetLineSpan(declaration.FullSpan).ToString().Split(' ').Last(),
-                CodeFragment = declaration.ToString()
+                CodeFragment = declaration.ToString().Length > 100 ? declaration.ToString().Substring(0, 100) : declaration.ToString()
             });
         }
 
