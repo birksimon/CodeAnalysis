@@ -6,6 +6,7 @@ using CodeAnalysis.Enums;
 using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+
 using static CodeAnalysis.Domain.RawKindConstants;
 
 namespace CodeAnalysis.Domain
@@ -20,9 +21,17 @@ namespace CodeAnalysis.Domain
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
             foreach (var document in documents)
             {
+                yield return GetRecommendationsForHeadliningComments(document);
                 yield return GetRecommendationsForCodeInComments(document);
                 yield return GetRecommendationsForDocumentationOnPrivateSoftwareUnits(document);
             }
+        }
+
+        private OptimizationRecomendation GetRecommendationsForHeadliningComments(Document document)
+        {
+            var headliningComments = SearchForHeadliningComments(document);
+            return _documentWalker.CreateRecommendations(document, headliningComments,
+                RecommendationType.CommentHeadline);
         }
         
         private OptimizationRecomendation GetRecommendationsForDocumentationOnPrivateSoftwareUnits(Document document)
