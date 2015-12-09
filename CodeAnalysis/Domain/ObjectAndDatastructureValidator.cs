@@ -70,7 +70,7 @@ namespace CodeAnalysis.Domain
             var lodViolations = 
                 (from methodInvocation in methodInvocations
                  where semanticModel.GetSymbolInfo(methodInvocation).Symbol != null
-                 where BelongsToClassType(methodInvocation)
+                 where !IsDataStructure(methodInvocation)
                  where !IsInvocationOfContainingType(methodInvocation, semanticModel)
                  where !IsInvocationOfContainingMethodsParameters(methodInvocation, semanticModel)
                  where !IsInvocationOfContainingTypesMembers(methodInvocation, semanticModel)
@@ -82,10 +82,10 @@ namespace CodeAnalysis.Domain
             return recommendations;
         }
 
-        private bool BelongsToClassType(InvocationExpressionSyntax invocation)
+        private bool IsDataStructure(InvocationExpressionSyntax invocation)
         {
             var containingType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(invocation);
-            return DetermineClassType(containingType) == ClassType.Object;
+            return DetermineClassType(containingType) != ClassType.DataStructure;
         }
         
         private bool IsInvocationOfContainingType(InvocationExpressionSyntax invocation, SemanticModel model)
