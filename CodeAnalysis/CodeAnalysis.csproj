@@ -98,6 +98,7 @@
     <Compile Include="DataClasses\Formatter.cs" />
     <Compile Include="Domain\Exceptions\InvocationIsAnonymousException.cs" />
     <Compile Include="Domain\RawKindConstants.cs" />
+    <Compile Include="Enums\ClassType.cs" />
     <Compile Include="Output\ICSVPrintable.cs" />
     <Compile Include="DataClasses\Occurence.cs" />
     <Compile Include="DataClasses\OptimizationRecomendation.cs" />
@@ -111,7 +112,7 @@
     <Compile Include="Domain\FunctionInspector.cs" />
     <Compile Include="Domain\ICodeAnalyzer.cs" />
     <Compile Include="Domain\InheritanceInspector.cs" />
-    <Compile Include="Domain\LawOfDemeterValidator.cs" />
+    <Compile Include="Domain\ObjectAndDatastructureValidator.cs" />
     <Compile Include="Domain\LimitConditionInspector.cs" />
     <Compile Include="Domain\MetricCalculator.cs" />
     <Compile Include="Domain\NameInspector.cs" />
@@ -126,6 +127,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="_TestStuff\A.cs" />
     <Compile Include="_TestStuff\Base.cs" />
+    <Compile Include="_TestStuff\Hybrid.cs" />
     <Compile Include="_TestStuff\SubB.cs" />
   </ItemGroup>
   <ItemGroup>

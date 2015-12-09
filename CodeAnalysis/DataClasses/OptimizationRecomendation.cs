@@ -25,7 +25,8 @@ namespace CodeAnalysis.DataClasses
                 { RecommendationType.NullArgument, "Do not handover null-Arguments" },
                 { RecommendationType.ErrorFlag, "Do not use error flags. E.g. throw an exception instead." },
                 { RecommendationType.InheritanceDependency, "Base classes should not know about their derived classes." },
-                { RecommendationType.LimitCondition, "Do not repeatly use the same limit condition. Encapsulate it in a new variable instead." }
+                { RecommendationType.LimitCondition, "Do not repeatly use the same limit condition. Encapsulate it in a new variable instead." },
+                { RecommendationType.HybridDataStructure, "Do not use hybrids of classes and data structures." }
             };
 
         public IEnumerable<Occurence> Occurrences { get; set; }

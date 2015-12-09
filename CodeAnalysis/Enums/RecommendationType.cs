@@ -15,6 +15,7 @@
         NullArgument,
         ErrorFlag, 
         InheritanceDependency,
-        LimitCondition
+        LimitCondition,
+        HybridDataStructure
     }
 }
