@@ -15,16 +15,28 @@ namespace CodeAnalysis.Domain
     {
         private readonly DocumentWalker _documentWalker = new DocumentWalker();
         private const int SufficientBlockSize = 10;
-        
+
         public IEnumerable<ICSVPrintable> Analyze(Solution solution)
         {
             var documents = _documentWalker.GetAllDocumentsFromSolution(solution);
-            foreach (var document in documents)
-            {
-                yield return GetRecommendationsForHeadliningComments(document);
-                yield return GetRecommendationsForCodeInComments(document);
-                yield return GetRecommendationsForDocumentationOnPrivateSoftwareUnits(document);
-            }
+
+            var result = documents.AsParallel().SelectMany(GetRecomendationsForDocument);
+
+            //var result = new List<OptimizationRecomendation>();
+            //Parallel.ForEach(documents, document =>
+            //{
+            //    result.Add(GetRecommendationsForHeadliningComments(document));
+            //    result.Add(GetRecommendationsForCodeInComments(document));
+            //    result.Add(GetRecommendationsForDocumentationOnPrivateSoftwareUnits(document));
+            //});
+            return result;
+        }
+
+        private IEnumerable<ICSVPrintable> GetRecomendationsForDocument(Document document)
+        {
+            yield return GetRecommendationsForHeadliningComments(document);
+            yield return GetRecommendationsForCodeInComments(document);
+            yield return GetRecommendationsForDocumentationOnPrivateSoftwareUnits(document);
         }
 
         private OptimizationRecomendation GetRecommendationsForHeadliningComments(Document document)
@@ -33,7 +45,7 @@ namespace CodeAnalysis.Domain
             return _documentWalker.CreateRecommendations(document, headliningComments,
                 RecommendationType.CommentHeadline);
         }
-        
+
         private OptimizationRecomendation GetRecommendationsForDocumentationOnPrivateSoftwareUnits(Document document)
         {
             var documentationOnPrivateCode = SearchForDocumentationOnPrivateCode(document).ToList();
@@ -45,7 +57,7 @@ namespace CodeAnalysis.Domain
             var root = document.GetSyntaxRootAsync().Result;
             var allPrivateAccessModifiers = root.DescendantTokens().Where(token => token.RawKind == PrivateToken);
             var modifiersWithDocumentation = allPrivateAccessModifiers.Where(token => token.HasLeadingTrivia);
-            var privateDocumentation = from tokens in modifiersWithDocumentation 
+            var privateDocumentation = from tokens in modifiersWithDocumentation
                                        from trivia in tokens.LeadingTrivia
                                        where trivia.RawKind == SingleLineDocumentationTrivia
                                        select trivia;
@@ -73,7 +85,7 @@ namespace CodeAnalysis.Domain
         public IEnumerable<SyntaxTrivia> SearchForHeadliningComments(Document document)
         {
             var comments = GetAllComments(document);
-            return 
+            return
                 (from comment in comments
                  let followingCodeLines = GetFollowingLinesUntilBlankLine(comment.Token).ToList()
                  where followingCodeLines.Count() >= 3 && IsLineAComment(followingCodeLines.Last().LineNumber + 1, comment.SyntaxTree)
