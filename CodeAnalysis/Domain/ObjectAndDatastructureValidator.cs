@@ -34,8 +34,8 @@ namespace CodeAnalysis.Domain
         {
             if (declaration.Keyword.RawKind == InterfaceKeywordToken) return ClassType.Other;
             var isDataStructure = HasPublicProperties(declaration) || HasPublicFields(declaration);
-            var isObject = HasPublicMethods(declaration);
-            if (isDataStructure && isObject) return ClassType.Hybrid;
+            var isObject = HasMethods(declaration);
+            if (isDataStructure && isObject && HasNotOnlyConstOrReadonlyFields(declaration)) return ClassType.Hybrid;
             if (isObject) return ClassType.Object;
             if (isDataStructure) return ClassType.DataStructure;
             return ClassType.Other;
@@ -54,10 +54,26 @@ namespace CodeAnalysis.Domain
             return fields.Any(field => field.DescendantTokens().Any(t => t.RawKind == PublicToken));
         }
 
-        private bool HasPublicMethods(TypeDeclarationSyntax declaration)
+        private bool HasMethods(TypeDeclarationSyntax declaration)
         {
             var methods = declaration.DescendantNodes().OfType<MethodDeclarationSyntax>();
-            return methods.Any(method => method.DescendantTokens().Any(t => t.RawKind == PublicToken));
+            return methods.Any();
+        }
+
+        private bool HasNotOnlyConstOrReadonlyFields(TypeDeclarationSyntax declaration)
+        {
+            var fields = declaration.DescendantNodes().OfType<FieldDeclarationSyntax>();
+            foreach (var field in fields)
+            {
+                if (field.ChildTokens().Any(t => t.RawKind == PublicToken))
+                {
+                    if (!field.ChildTokens().Any(t => t.RawKind == ConstToken || t.RawKind == ReadOnlyToken))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
 

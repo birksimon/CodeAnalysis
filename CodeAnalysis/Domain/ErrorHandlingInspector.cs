@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
@@ -47,6 +48,9 @@ namespace CodeAnalysis.Domain
             return _documentWalker.CreateRecommendations(doc, errorFlagCandidates, RecommendationType.ErrorFlag);
         }
 
+        //TODO Was ist mit: 
+        //const int errorCode;
+        //return errorCode;
         public bool IsAbsoluteValue(ReturnStatementSyntax returnStatement)
         {
             return returnStatement.ChildNodes().OfType<LiteralExpressionSyntax>().Any(n => n.RawKind == NumericLiteralExpression)
@@ -65,6 +69,7 @@ namespace CodeAnalysis.Domain
                    select argument.Parent as ArgumentListSyntax;
         }
 
+        //TODO was ist mit: Type blub = null; return blub; ?
         private IEnumerable<ReturnStatementSyntax> FilterForNullReturns(IEnumerable<ReturnStatementSyntax> returnStatements)
         {
             return from nullReturns in returnStatements

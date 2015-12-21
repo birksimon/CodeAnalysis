@@ -54,8 +54,6 @@ namespace CodeAnalysis.Domain
         {
             const string numberSeriesRegex = "^[a-zA-Z][0-9]{1,3}$";
             var identifier = declaration.ChildTokens().First(t => t.RawKind == IdentifierToken);
-           // if (IsInLoop(declaration)) return false;
-           // if (IsInLamda(declaration)) return false;
             return Regex.IsMatch(identifier.Value.ToString(), numberSeriesRegex);
         }
 

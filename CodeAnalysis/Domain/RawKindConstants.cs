@@ -9,6 +9,8 @@
         public const int SlashToken = 8221;
         public const int PublicToken = 8343;
         public const int PrivateToken = 8344;
+        public const int ReadOnlyToken = 8348;
+        public const int ConstToken = 8350;
         public const int InterfaceKeywordToken = 8376;
         public const int IdentifierToken = 8508;
         public const int PlusToken = 8539;

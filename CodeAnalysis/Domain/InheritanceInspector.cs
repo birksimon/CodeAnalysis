@@ -117,7 +117,7 @@ namespace CodeAnalysis.Domain
                 .DescendantNodes()
                 .OfType<TypeDeclarationSyntax>().First
                 (dec => semanticModel.GetDeclaredSymbol(dec).Equals(baseTypeAndDerivees.BaseType));
-
+            
 
             var instantiations = classDeclaration.DescendantNodes().OfType<T>();
             foreach (var instantiation in instantiations)
