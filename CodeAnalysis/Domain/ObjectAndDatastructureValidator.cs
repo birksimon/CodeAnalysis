@@ -87,12 +87,6 @@ namespace CodeAnalysis.Domain
 
             foreach (var inv in methodInvocations)
             {
-
-                if (inv.ToString().Contains("AddToDictionariesList(baseTypes, document, symbolInfo)"))
-                {
-                    int bre = 0;
-                }
-
                 if (semanticModel.GetSymbolInfo(inv).Symbol == null) continue;
                 if (IsDataStructure(inv)) continue;
                 if (IsInvocationOfContainingType(inv, semanticModel)) continue;

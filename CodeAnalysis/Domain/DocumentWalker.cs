@@ -67,6 +67,26 @@ namespace CodeAnalysis.Domain
 
         public bool IsSymbolInvocationOfNodes(IEnumerable<SyntaxNode> nodes, ISymbol invocationSymbol, SemanticModel model)
         {
+            foreach (var node in nodes)
+            {
+                foreach (var identifier in node.DescendantNodes().Where(
+                    t => t is IdentifierNameSyntax || t is PredefinedTypeSyntax || t is GenericNameSyntax || t is ArrayTypeSyntax))
+                {
+                    var typeSymbol = FindSymbolInfo(model, identifier);
+                    if (typeSymbol == null) continue;
+                    var memberSymbols = CollectAllMembers(typeSymbol);
+                    foreach (var member in memberSymbols)
+                    {
+                        var invocationMethodSymbol = invocationSymbol as IMethodSymbol;
+                        if (invocationMethodSymbol == null) continue;
+                        var symbolToEvaluate = invocationMethodSymbol.IsGenericMethod ? invocationMethodSymbol.ConstructedFrom : invocationSymbol;
+                        if (symbolToEvaluate.Equals(member)) return true;
+                    }
+                }
+            }
+            return false;
+
+            /*
             return
                 (from node in nodes
                  from identifier in node.DescendantNodes().Where((
@@ -75,6 +95,7 @@ namespace CodeAnalysis.Domain
                  where typeSymbol != null
                  from member in CollectAllMembers(typeSymbol)
                  select member).Any(member => member.Name.Equals(invocationSymbol.Name));
+                 */
         }
 
         private ITypeSymbol FindSymbolInfo(SemanticModel model, SyntaxNode parameter)
@@ -85,11 +106,29 @@ namespace CodeAnalysis.Domain
         private List<ISymbol> CollectAllMembers(ITypeSymbol symbolInfo)
         {
             var members = symbolInfo.GetMembers().ToList();
+            members.AddRange(GetAllMembersFromParentTypes(symbolInfo));
+            members.AddRange(GetAllMembersFromParentInterface(symbolInfo));
+            return members;
+        }
+
+        private IEnumerable<ISymbol> GetAllMembersFromParentTypes(ITypeSymbol symbolInfo)
+        {
             var parent = symbolInfo.BaseType;
+            var members = new List<ISymbol>();
             while (parent != null)
             {
                 members.AddRange(parent.GetMembers());
                 parent = parent.BaseType;
+            }
+            return members;
+        }
+
+        private IEnumerable<ISymbol> GetAllMembersFromParentInterface(ITypeSymbol symbolInfo)
+        {
+            var members = symbolInfo.GetMembers().ToList();
+            foreach (var parentsParent in symbolInfo.AllInterfaces)
+            {
+                members.AddRange(GetAllMembersFromParentInterface(parentsParent));
             }
             return members;
         }
