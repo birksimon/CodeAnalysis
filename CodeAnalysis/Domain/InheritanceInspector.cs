@@ -141,7 +141,7 @@ namespace CodeAnalysis.Domain
             return dict;
         }
 
-        public void AddToDictionariesList<TKey, TValue>(Dictionary<TKey, List<TValue>> dict, TKey key, TValue value)
+        private void AddToDictionariesList<TKey, TValue>(Dictionary<TKey, List<TValue>> dict, TKey key, TValue value)
         {
             if (dict.ContainsKey(key))
             {

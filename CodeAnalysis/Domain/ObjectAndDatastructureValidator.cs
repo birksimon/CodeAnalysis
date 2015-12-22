@@ -82,7 +82,30 @@ namespace CodeAnalysis.Domain
         private ICSVPrintable GetLODViolations(Document document)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
-            var methodInvocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(document).ToList();            
+            var methodInvocations = _documentWalker.GetNodesFromDocument<InvocationExpressionSyntax>(document).ToList();
+            var violations = new List<InvocationExpressionSyntax>();
+
+            foreach (var inv in methodInvocations)
+            {
+
+                if (inv.ToString().Contains("AddToDictionariesList(baseTypes, document, symbolInfo)"))
+                {
+                    int bre = 0;
+                }
+
+                if (semanticModel.GetSymbolInfo(inv).Symbol == null) continue;
+                if (IsDataStructure(inv)) continue;
+                if (IsInvocationOfContainingType(inv, semanticModel)) continue;
+                if (IsInvocationOfContainingMethodsParameters(inv, semanticModel)) continue;
+                if (IsInvocationOfContainingTypesMembers(inv, semanticModel)) continue;
+                if (IsInvocationOfInMethodCreatedObject(inv, semanticModel)) continue;
+                if (IsStaticInvocation(inv, semanticModel)) continue;
+                if (IsExtensionMethodInvocation(inv, semanticModel)) continue;
+                violations.Add(inv);
+            }
+            return _documentWalker.CreateRecommendations(document, violations, RecommendationType.LODViolation);
+
+            /*
             var lodViolations = 
                 (from methodInvocation in methodInvocations
                  where semanticModel.GetSymbolInfo(methodInvocation).Symbol != null
@@ -96,6 +119,7 @@ namespace CodeAnalysis.Domain
                  select methodInvocation).ToList();
             var recommendations = _documentWalker.CreateRecommendations(document, lodViolations, RecommendationType.LODViolation);
             return recommendations;
+            */
         }
 
         private bool IsDataStructure(InvocationExpressionSyntax invocation)
@@ -106,12 +130,14 @@ namespace CodeAnalysis.Domain
         
         private bool IsInvocationOfContainingType(InvocationExpressionSyntax invocation, SemanticModel model)
         {
-            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol;
+            var invocationSymbol = model.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
+            if (invocationSymbol == null) return true;
             var containingType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(invocation);
             var methodDeclarations = containingType.DescendantNodes().OfType<MethodDeclarationSyntax>();
+            var symbolToEvaluate = invocationSymbol.IsGenericMethod ? invocationSymbol.ConstructedFrom : invocationSymbol;
             return methodDeclarations
-                .Select(declaration => model.GetDeclaredSymbol(declaration))
-                .Any(declarationSymbol => invocationSymbol.Equals(declarationSymbol));
+                    .Select(declaration => model.GetDeclaredSymbol(declaration))
+                    .Any(declarationSymbol => symbolToEvaluate.Equals(declarationSymbol));
         }
 
         private bool IsInvocationOfContainingMethodsParameters(InvocationExpressionSyntax invocation,
