@@ -101,7 +101,7 @@ namespace CodeAnalysis.Domain
         private bool IsDataStructure(InvocationExpressionSyntax invocation)
         {
             var containingType = _documentWalker.GetContainingNodeOfType<TypeDeclarationSyntax>(invocation);
-            return DetermineClassType(containingType) != ClassType.DataStructure;
+            return DetermineClassType(containingType) == ClassType.DataStructure;
         }
         
         private bool IsInvocationOfContainingType(InvocationExpressionSyntax invocation, SemanticModel model)
