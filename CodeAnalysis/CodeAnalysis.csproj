@@ -127,6 +127,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="_TestStuff\A.cs" />
     <Compile Include="_TestStuff\Base.cs" />
+    <Compile Include="_TestStuff\Datastrucutre.cs" />
     <Compile Include="_TestStuff\Hybrid.cs" />
     <Compile Include="_TestStuff\SubB.cs" />
   </ItemGroup>
