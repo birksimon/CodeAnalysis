@@ -4,6 +4,7 @@ using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
 using CodeAnalysis.Output;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeAnalysis.Domain
@@ -61,13 +62,30 @@ namespace CodeAnalysis.Domain
 
         private IEnumerable<ParameterSyntax> SearchForFlagArguments(Document document)
         {
-            var parameterLists = _documentWalker.GetNodesFromDocument<ParameterListSyntax>(document);
-            var boolParameters = GetBoolParameters(parameterLists).ToList();
-            var conditionals = GetConditionalsInParametersMethods(boolParameters);
+            var parameterLists = _documentWalker.GetNodesFromDocument<ParameterListSyntax>(document).ToList();
+            var flagParameterCandidates = new List<ParameterSyntax>();
+            flagParameterCandidates.AddRange(GetBoolParameters(parameterLists));
+            flagParameterCandidates.AddRange(GetEnumParameters(parameterLists, document));
+            var conditionals = GetConditionalsInParametersMethods(flagParameterCandidates);
             var identifiers = GetIdentifiersInConditionals(conditionals);
-            var flagArguments = GetParametersUsedAsIdentifiersInConditionals(boolParameters, identifiers);
+            var flagArguments = GetParametersUsedAsIdentifiersInConditionals(flagParameterCandidates, identifiers);
             return flagArguments.Distinct();
         }
+
+        private IEnumerable<ParameterSyntax> GetEnumParameters(IEnumerable<ParameterListSyntax> parameterLists,
+            Document doc)
+        {
+            var model = doc.GetSemanticModelAsync().Result;
+            return 
+                from list in parameterLists
+                from parameter in list.Parameters
+                let symbol = model.GetDeclaredSymbol(parameter)
+                let symbolType = symbol.Type.BaseType
+                where symbolType != null
+                where symbolType.ToString().Equals("System.Enum")
+                select parameter;
+        }
+
 
         private IEnumerable<ParameterSyntax> GetBoolParameters(IEnumerable<ParameterListSyntax> parameterLists)
         {
@@ -88,6 +106,7 @@ namespace CodeAnalysis.Domain
             {
                 conditionals.AddRange(methodDeclaration.DescendantNodes().OfType<IfStatementSyntax>());
                 conditionals.AddRange(methodDeclaration.DescendantNodes().OfType<ConditionalExpressionSyntax>());
+                conditionals.AddRange(methodDeclaration.DescendantNodes().OfType<SwitchStatementSyntax>());
             }
             return conditionals;
         }

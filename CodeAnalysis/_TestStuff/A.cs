@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using CodeAnalysis.Enums;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace CodeAnalysis._TestStuff
@@ -8,6 +10,7 @@ namespace CodeAnalysis._TestStuff
     {
         public const int C = 0; // VariableDeclarator
         public int Blub { get; set; }
+        public A RecursiveTypeProperty;
         public void F(int i1, int i2) //MethodDeclarationSyntax (ParameterSyntax) 
         {
             string s = "balh"; // VariableDeclarator
@@ -17,7 +20,19 @@ namespace CodeAnalysis._TestStuff
             Datastrucutre ds = new Datastrucutre();
             ds.att2 = "asdd";       //SimpleMemberAccessExpression
             string blub = ds.att2;  //SimpleMemberAccessExpression
+        }
 
+        public void EnumFlagTester(ClassType enumFlagArg)
+        {
+            switch (enumFlagArg)
+            {
+                case ClassType.DataStructure:
+                    Console.WriteLine("ds");
+                    break;
+                case ClassType.Hybrid:
+                    Console.WriteLine("hyb");
+                    break;
+            }
         }
 
 

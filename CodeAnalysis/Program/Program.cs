@@ -34,7 +34,8 @@ namespace CodeAnalysis.Program
             {
                 foreach (var analyzer in analyzers)
                 {
-                    results.AddRange(analyzer.Analyze(solution));
+                    //if (analyzer.GetType() == typeof(ObjectAndDatastructureValidator)) 
+                        results.AddRange(analyzer.Analyze(solution));
                 }
             }
             return results;
