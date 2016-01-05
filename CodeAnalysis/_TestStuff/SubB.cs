@@ -33,6 +33,15 @@ namespace CodeAnalysis._TestStuff
             {
                 parameterA = parameterA + paramterB;
             }
+
+            String nullParameter = null;
+            NullParameterAndReturnTester(nullParameter);
+        }
+
+        private String NullParameterAndReturnTester(String nullParam)
+        {
+            string returnValue = null;
+            return returnValue;
         }
     }
 }

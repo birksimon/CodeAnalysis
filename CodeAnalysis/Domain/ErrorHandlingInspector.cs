@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CodeAnalysis.DataClasses;
 using CodeAnalysis.Enums;
@@ -73,7 +72,8 @@ namespace CodeAnalysis.Domain
         private IEnumerable<ReturnStatementSyntax> FilterForNullReturns(IEnumerable<ReturnStatementSyntax> returnStatements)
         {
             return from nullReturns in returnStatements
-                   where nullReturns.ChildNodes().OfType<LiteralExpressionSyntax>().Any(r => r.RawKind == NullLiteralExpresision)
+                   where nullReturns.ChildNodes().OfType<LiteralExpressionSyntax>()
+                    .Any(r => r.RawKind == NullLiteralExpresision)
                    select nullReturns;
         }
     }
